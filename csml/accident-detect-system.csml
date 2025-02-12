@@ -1,0 +1,44 @@
+{
+  "version":"0.1",
+  "name": "Accident Detect System",
+  "stateMachines": [
+    {
+      "name": "video",
+      "localContext": {
+        "variables":[
+          {
+
+          }
+        ]
+      },
+      "states": [
+        {
+          "name": "monitoring",
+          "initial": true,
+
+        }
+      ]
+    },
+    {
+      "name": "microphone",
+
+    },
+    {
+      "name": "pressure",
+
+    },
+    {
+      "name": "seat",
+
+    },
+    {
+      "name": "detector",
+
+    },
+    {
+      "name": "analyzer",
+
+    }
+  ]
+
+}
