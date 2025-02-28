@@ -1,0 +1,289 @@
+amends "https://raw.githubusercontent.com/UIBK-DPS-DC/Cirrina-Specifications/main/pkl/CollaborativeStateMachineDescription.pkl"
+import "https://raw.githubusercontent.com/UIBK-DPS-DC/Cirrina-Specifications/main/pkl/CollaborativeStateMachineDescription.pkl" as CSM
+
+// ------------------------ CSM -------------------------------
+name = "Accident Detect System"
+version = "2.0"
+stateMachines {
+    pressureSM
+    cloudAnalysisSM
+}
+
+// ------------------------ Service Types -------------------------------
+local stTransmitData = "transmitData"
+local stPreprocess = "preprocess"
+local stDetectAbnormalPressure = "detectAbnormalPressure"
+local stRecordAbnormalPressure = "recordAbnormalPressure"
+local stNotificationSent = "notificationSent"
+
+local stDeepAnalysis = "deepAnalysis"
+
+// ------------------------ Events -------------------------------
+local eTransmitted = "transmitted"
+local ePreprocess = "preprocess"
+local eDetectPressure = "detectPressure"
+local eFoundAbnormal = "foundAbnormal"
+local eRecord = "record"
+local eNotify = "notify"
+
+local eAnalysisComplete = "analysisComplete"
+
+// ------------------------ Variables -------------------------------
+local vHasDetectPressure = "hasDetectPressure"
+
+local vThreatLevel = "threatLevel"
+
+// ------------------------ ContextVariableDescriptions -------------------------------
+local pressureContextVariableDescription: CSM.ContextVariableDescription = new {
+    name = "pressureData"
+    value = "pressureData"
+}
+
+// ------------------------ Pressure SM -------------------------------
+local pressureSM: CSM.StateMachineDescription = new {
+    name = "pressure"
+    localContext {
+        variables {
+            new {
+                name = "pressureData"
+                value = ""
+            }
+            new {
+                name = vHasDetectPressure
+                value = "false"
+            }
+        }
+    }
+    states {
+        sTransmission
+        sPreprocess
+    }
+    stateMachines {
+        sAbnormalStateMachine
+    }
+}
+
+local sTransmission: CSM.StateDescription = new {
+    name = "transmission"
+    initial = true
+    entry {
+        new CSM.InvokeActionDescription {
+            serviceType = stTransmitData
+            input {
+                new {
+                    name = "pressureData"
+                    value = "pressure_sensor_1"
+                }
+            }
+            output {
+                new {
+                    reference = "pressureData"
+                }
+            }
+            done {
+                new {
+                    name = eTransmitted
+                    channel = "internal"
+                }
+            }
+        }
+    }
+    on {
+        new {
+            event = eTransmitted
+            target = sPreprocess.name
+        }
+    }
+}
+
+local sPreprocess: CSM.StateDescription = new {
+    name = "preprocess"
+    entry {
+        new CSM.InvokeActionDescription {
+            serviceType = stPreprocess
+            input {
+               pressureContextVariableDescription
+            }
+            output {
+                new {
+                    reference = "pressureData"
+                }
+            }
+            done {
+                new {
+                    name = ePreprocess
+                    channel = "internal"
+                }
+            }
+        }
+    }
+    on {
+        new {
+            event = ePreprocess
+            target = sAbnormalStateMachine.name
+        }
+    }
+}
+
+local sAbnormalStateMachine: CSM.StateMachineDescription = new {
+    name = "AbnormalStateMachine"
+    states {
+        sDetection
+        sRecording
+        sNotification
+    }
+}
+
+local sDetection: CSM.StateDescription = new {
+    name = "Detection"
+    initial = true
+    entry {
+        new CSM.InvokeActionDescription {
+            serviceType = stDetectAbnormalPressure
+            input {
+                pressureContextVariableDescription
+            }
+            output {
+                new {
+                    reference = vAbnormalPressureDetected
+                }
+            }
+            done {
+                new {
+                    name = eDetectionComplete
+                    channel = "global"
+                }
+            }
+        }
+    }
+    on {
+        new {
+            event = eDetectionComplete
+            target = sRecording.name
+        }
+    }
+}
+
+local sRecording: CSM.StateDescription = new {
+    name = "Recording"
+    entry {
+        new CSM.InvokeActionDescription {
+            serviceType = stRecordAbnormalPressure
+            input {
+                new {
+                    name = "timestamp"
+                    value = "currentTime()"
+                }
+                new {
+                    name = "location"
+                    value = "getGPS()"
+                }
+            }
+            done {
+                new {
+                    name = eRecordingComplete
+                    channel = "global"
+                }
+            }
+        }
+    }
+    on {
+        new {
+            event = eRecordingComplete
+            target = sEmergencyNotification.name
+        }
+    }
+}
+
+local sNotification: CSM.StateDescription = new {
+    name = "Notification"
+    entry {
+        new CSM.InvokeActionDescription {
+            serviceType = stAlertEmergencyServices
+            done {
+                new {
+                    name = eAlertSent
+                    channel = "global"
+                }
+            }
+        }
+    }
+    on {
+        new {
+            event = eAlertSent
+            target = sMonitoring.name
+        }
+    }
+}
+
+// ------------------------ Cloud Analysis SM -------------------------------
+local cloudAnalysisSM: CSM.StateMachineDescription = new {
+    name = "cloud_analysis"
+    localContext {
+        variables {
+            new {
+                name = vThreatLevel
+                value = "0"
+            }
+        }
+    }
+    states {
+        sProcessing
+    }
+}
+
+local sProcessing: CSM.StateDescription = new {
+    name = "Processing"
+    initial = true
+    on {
+        new {
+            event = eDetectionComplete
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stDeepAnalysis
+                    input {
+                        new {
+                            name = "video"
+                            value = "$videoData"
+                        }
+                        new {
+                            name = "audio"
+                            value = "$audioData"
+                        }
+                        new {
+                            name = "pressure"
+                            value = "$pressureData"
+                        }
+                    }
+                    output {
+                        new {
+                            reference = vThreatLevel
+                        }
+                    }
+                    done {
+                        new {
+                            name = eAnalysisComplete
+                            channel = "global"
+                        }
+                    }
+                }
+            }
+        }
+        new {
+            event = eAnalysisComplete
+            guards {
+                new CSM.GuardDescription {
+                    expression = "\(vThreatLevel) > 8"
+                }
+            }
+            actions {
+                new CSM.RaiseActionDescription {
+                    event {
+                        name = eAccidentDetected
+                        channel = "global"
+                    }
+                }
+            }
+        }
+    }
+}

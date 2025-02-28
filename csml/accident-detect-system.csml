@@ -1,11 +1,11 @@
 {
-  "version":"0.1",
+  "version": "0.1",
   "name": "Accident Detect System",
   "stateMachines": [
     {
       "name": "video",
       "localContext": {
-        "variables":[
+        "variables": [
           {
             "name": "videoData",
             "value": "null"
@@ -55,7 +55,7 @@
             },
             {
               "event": "accidentDetected",
-              "target": "AbnormalDetection"
+              "target": "AbnormalStateMachine"
             }
           ]
         },
@@ -73,7 +73,7 @@
               ],
               "done": [
                 {
-                  "name":"transmitComplete",
+                  "name": "transmitComplete",
                   "channel": "internal"
                 }
               ]
@@ -86,98 +86,104 @@
             },
             {
               "event": "accidentDetected",
-              "target": "AbnormalDetection"
+              "target": "AbnormalStateMachine"
             }
           ]
         },
         {
-          "name": "AbnormalDetection",
-          "entry": [
+          "name": "AbnormalStateMachine",
+          "stateMachines": [
             {
-              "type": "invoke",
-              "serviceType": "detectCollision",
-              "input": [
+              "name": "AbnormalDetection",
+              "initial": true,
+              "entry": [
                 {
-                  "name": "video",
-                  "value": "videoData"
+                  "type": "invoke",
+                  "serviceType": "detectCollision",
+                  "input": [
+                    {
+                      "name": "video",
+                      "value": "videoData"
+                    }
+                  ],
+                  "output": [
+                    {
+                      "reference": "accidentDetected"
+                    }
+                  ],
+                  "done": [
+                    {
+                      "name": "detectionComplete",
+                      "channel": "global"
+                    }
+                  ]
                 }
               ],
-              "output": [
+              "on": [
                 {
-                  "reference": "accidentDetected"
+                  "event": "detectionComplete",
+                  "target": "Recording"
+                }
+              ]
+            },
+            {
+              "name": "Recording",
+              "entry": [
+                {
+                  "type": "invoke",
+                  "serviceType": "recordAccident",
+                  "input": [
+                    {
+                      "name": "timestamp",
+                      "value": "currentTime()"
+                    },
+                    {
+                      "name": "location",
+                      "value": "getGPS()"
+                    }
+                  ],
+                  "done": [
+                    {
+                      "name": "recordingComplete",
+                      "channel": "global"
+                    }
+                  ]
                 }
               ],
-              "done": [
+              "on": [
                 {
-                  "name": "detectionComplete",
-                  "channel": "global"
+                  "event": "recordingComplete",
+                  "target": "EmergencyNotification"
                 }
               ]
-            }
-          ],
-          "on": [
+            },
             {
-              "event": "detectionComplete",
-              "target": "Recording"
-            }
-          ]
-        },
-        {
-          "name": "Recording",
-          "entry": [
-            {
-              "type": "invoke",
-              "serviceType": "recordAccident",
-              "input": [
+              "name": "EmergencyNotification",
+              "entry": [
                 {
-                  "name": "timestamp",
-                  "value": "currentTime()"
-                },
-                {
-                  "name": "location",
-                  "value": "getGPS()"
+                  "type": "invoke",
+                  "serviceType": "alertEmergencyServices",
+                  "done": [
+                    {
+                      "name": "alertSent",
+                      "channel": "global"
+                    }
+                  ]
                 }
               ],
-              "done": [
+              "on": [
                 {
-                  "name": "recordingComplete",
-                  "channel": "global"
+                  "event": "alertSent",
+                  "target": "Monitoring"
                 }
               ]
-            }
-          ],
-          "on": [
-            {
-              "event": "recordingComplete",
-              "target": "EmergencyNotification"
-            }
-          ]
-        },
-        {
-          "name": "EmergencyNotification",
-          "entry": [
-            {
-              "type": "invoke",
-              "serviceType": "alertEmergencyServices",
-              "done": [
-                {
-                  "name": "alertSent",
-                  "channel": "global"
-                }
-              ]
-            }
-          ],
-          "on": [
-            {
-              "event": "alertSent",
-              "target": "Monitoring"
             }
           ]
         }
       ]
     },
     {
-      "name": "microphone",
+      "name": "audio",
       "localContext": {
         "variables": [
           {
@@ -192,16 +198,16 @@
       },
       "states": [
         {
-          "name":"Monitoring",
+          "name": "Monitoring",
           "initial": true,
           "entry": [
             {
-              "type":"invoke",
+              "type": "invoke",
               "serviceType": "captureAudio",
               "input": [
                 {
-                  "name": "microphone",
-                  "value": "mic_1"
+                  "name": "audio",
+                  "value": "audio_1"
                 }
               ],
               "output": [
@@ -229,7 +235,7 @@
             },
             {
               "event": "abnormalSoundDetected",
-              "target": "AbnormalDetection"
+              "target": "AbnormalStateMachine"
             }
           ]
         },
@@ -255,96 +261,102 @@
           ],
           "on": [
             {
-              "event": "transmitComplet",
+              "event": "transmitComplete",
               "target": "Monitoring"
             },
             {
               "event": "abnormalSoundDetected",
-              "target": "AbnormalDetection"
+              "target": "AbnormalStateMachine"
             }
           ]
         },
         {
-          "name": "AbnormalDetection",
-          "entry": [
+          "name": "AbnormalStateMachine",
+          "stateMachines": [
             {
-              "type": "invoke",
-              "serviceType": "detectAbnormalSound",
-              "input": [
+              "name": "AbnormalDetection",
+              "initial": true,
+              "entry": [
                 {
-                  "name":"audio",
-                  "value": "audioData"
+                  "type": "invoke",
+                  "serviceType": "detectAbnormalSound",
+                  "input": [
+                    {
+                      "name": "audio",
+                      "value": "audioData"
+                    }
+                  ],
+                  "output": [
+                    {
+                      "reference": "abnormalSoundDetected"
+                    }
+                  ],
+                  "done": [
+                    {
+                      "name": "detectionComplete",
+                      "channel": "global"
+                    }
+                  ]
                 }
               ],
-              "output": [
+              "on": [
                 {
-                  "reference": "abnormalSoundDetected"
+                  "event": "detectionComplete",
+                  "target": "Recording"
+                }
+              ]
+            },
+            {
+              "name": "Recording",
+              "entry": [
+                {
+                  "type": "invoke",
+                  "serviceType": "recordAbnormalSound",
+                  "input": [
+                    {
+                      "name": "timestamp",
+                      "value": "currentTime()"
+                    },
+                    {
+                      "name": "location",
+                      "value": "getGPS()"
+                    }
+                  ],
+                  "done": [
+                    {
+                      "name": "recordingComplete",
+                      "channel": "global"
+                    }
+                  ]
                 }
               ],
-              "done": [
+              "on": [
                 {
-                  "name": "detectionComplete",
-                  "channel": "global"
+                  "event": "recordingComplete",
+                  "target": "EmergencyNotification"
                 }
               ]
-            }
-          ],
-          "on": [
+            },
             {
-              "event": "detectionComplete",
-              "target": "Recording"
-            }
-          ]
-        },
-        {
-          "name": "Recording",
-          "entry": [
-            {
-              "type": "invoke",
-              "serviceType": "recordAbnormalSound",
-              "input": [
+              "name": "EmergencyNotification",
+              "entry": [
                 {
-                  "name": "timestamp",
-                  "value": "currentTime()"
-                },
-                {
-                  "name": "location",
-                  "value": "getGPS()"
+                  "type": "invoke",
+                  "serviceType": "alertEmergencyServices",
+                  "done": [
+                    {
+                      "name": "alertSent",
+                      "channel": "global"
+                    }
+                  ]
                 }
               ],
-              "done": [
+              "on": [
                 {
-                  "name": "recordingComplete",
-                  "channel": "global"
+                  "event": "alertSent",
+                  "target": "Monitoring"
                 }
               ]
-            }
-          ],
-          "on": [
-            {
-              "event": "recordingComplete",
-              "target": "EmergencyNotification"
-            }
-          ]
-        },
-        {
-          "name": "EmergencyNotification",
-          "entry": [
-            {
-              "type": "invoke",
-              "serviceType": "alertEmergencyServices",
-              "done": [
-                {
-                  "name": "alertSent",
-                  "channel": "global"
-                }
-              ]
-            }
-          ],
-          "on": [
-            {
-              "event": "alertSent",
-              "target": "Monitoring"
             }
           ]
         }
@@ -403,7 +415,7 @@
             },
             {
               "event": "abnormalPressureDetected",
-              "target": "AbnormalDetection"
+              "target": "AbnormalStateMachine"
             }
           ]
         },
@@ -434,265 +446,97 @@
             },
             {
               "event": "abnormalPressureDetected",
-              "target": "AbnormalDetection"
+              "target": "AbnormalStateMachine"
             }
           ]
         },
         {
-          "name": "AbnormalDetection",
-          "entry": [
+          "name": "AbnormalStateMachine",
+          "stateMachines": [
             {
-              "type": "invoke",
-              "serviceType": "detectAbnormalPressure",
-              "input": [
+              "name": "AbnormalDetection",
+              "initial": true,
+              "entry": [
                 {
-                  "name": "pressure",
-                  "value": "pressureData"
+                  "type": "invoke",
+                  "serviceType": "detectAbnormalPressure",
+                  "input": [
+                    {
+                      "name": "pressure",
+                      "value": "pressureData"
+                    }
+                  ],
+                  "output": [
+                    {
+                      "reference": "abnormalPressureDetected"
+                    }
+                  ],
+                  "done": [
+                    {
+                      "name": "detectionComplete",
+                      "channel": "global"
+                    }
+                  ]
                 }
               ],
-              "output": [
+              "on": [
                 {
-                  "reference": "abnormalPressureDetected"
-                }
-              ],
-              "done": [
-                {
-                  "name": "detectionComplete",
-                  "channel": "global"
+                  "event": "detectionComplete",
+                  "target": "Recording"
                 }
               ]
-            }
-          ],
-          "on": [
-            {
-              "event": "detectionComplete",
-              "target": "Recording"
-            }
-          ]
-        },
-        {
-          "name": "Recording",
-          "entry": [
-            {
-              "type": "invoke",
-              "serviceType": "recordAbnormalPressure",
-              "input": [
-                {
-                  "name": "timestamp",
-                  "value": "currentTime()"
-                },
-                {
-                  "name": "location",
-                  "value": "getGPS()"
-                }
-              ],
-              "done": [
-                {
-                  "name": "recordingComplete",
-                  "channel": "global"
-                }
-              ]
-            }
-          ],
-          "on": [
-            {
-              "event": "recordingComplete",
-              "target": "EmergencyNotification"
-            }
-          ]
-        },
-        {
-          "name": "EmergencyNotification",
-          "entry": [
-            {
-              "type": "invoke",
-              "serviceType": "alertEmergencyServices",
-              "done": [
-                {
-                  "name": "alertSent",
-                  "channel": "global"
-                }
-              ]
-            }
-          ],
-          "on": [
-            {
-              "event": "alertSent",
-              "target": "Monitoring"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "seat",
-      "localContext": {
-        "variables": [
-          {
-            "name": "seatData",
-            "value": "null"
-          },
-          {
-            "name": "abnormalPressureChangeDetected",
-            "value": "false"
-          }
-        ]
-      },
-      "states": [
-        {
-          "name": "Monitoring",
-          "initial":true,
-          "entry": [
-            {
-              "type": "invoke",
-              "serviceType": "captureSeatData",
-              "input": [
-                {
-                  "name": "sensorId",
-                  "value": "seat_sensor_1"
-                }
-              ],
-              "output": [
-                {
-                  "reference": "seatData"
-                }
-              ],
-              "done": [
-                {
-                  "name": "seatDataReady",
-                  "channel": "internal"
-                }
-              ]
-            }
-          ],
-          "on": [
-            {
-              "event": "seatDataReady",
-              "guards": [
-                {
-                  "expression": "seatData.length >= 100"
-                }
-              ],
-              "target": "DataTransmission"
             },
             {
-              "event": "abnormalPressureChangeDetected",
-              "target": "AbnormalDetection"
-            }
-          ]
-        },
-        {
-          "name": "DataTransmission",
-          "entry": [
-            {
-              "type": "invoke",
-              "serviceType": "transmitToCloud",
-              "input": [
+              "name": "Recording",
+              "entry": [
                 {
-                  "name": "data",
-                  "value": "seatData"
+                  "type": "invoke",
+                  "serviceType": "recordAbnormalPressure",
+                  "input": [
+                    {
+                      "name": "timestamp",
+                      "value": "currentTime()"
+                    },
+                    {
+                      "name": "location",
+                      "value": "getGPS()"
+                    }
+                  ],
+                  "done": [
+                    {
+                      "name": "recordingComplete",
+                      "channel": "global"
+                    }
+                  ]
                 }
               ],
-              "done": [
+              "on": [
                 {
-                  "name": "transmitComplete",
-                  "channel": "internal"
+                  "event": "recordingComplete",
+                  "target": "EmergencyNotification"
                 }
               ]
-            }
-          ],
-          "on": [
-            {
-              "event": "transmitComplete",
-              "target": "Monitoring"
             },
             {
-              "event": "abnormalPressureChangeDetected",
-              "target": "AbnormalDetection"
-            }
-          ]
-        },
-        {
-          "name": "AbnormalDetection",
-          "entry": [
-            {
-              "type": "invoke",
-              "serviceType": "detectAbnormalPressureChange",
-              "input": [
+              "name": "EmergencyNotification",
+              "entry": [
                 {
-                  "name": "seat",
-                  "value": "seatData"
+                  "type": "invoke",
+                  "serviceType": "alertEmergencyServices",
+                  "done": [
+                    {
+                      "name": "alertSent",
+                      "channel": "global"
+                    }
+                  ]
                 }
               ],
-              "output": [
+              "on": [
                 {
-                  "reference": "abnormalPressureChangeDetected"
-                }
-              ],
-              "done": [
-                {
-                  "name": "detectionComplete",
-                  "channel":"global"
+                  "event": "alertSent",
+                  "target": "Monitoring"
                 }
               ]
-            }
-          ],
-          "on": [
-            {
-              "event": "detectionComplete",
-              "target": "Recording"
-            }
-          ]
-        },
-        {
-          "name": "Recording",
-          "entry": [
-            {
-              "type": "invoke",
-              "serviceType": "recordAbnormalPressureChange",
-              "input": [
-                {
-                  "name": "timestamp",
-                  "value": "currentTime()"
-                },
-                {
-                  "name": "location",
-                  "value": "getGPS()"
-                }
-              ],
-              "done": [
-                {
-                  "name": "recordingComplete",
-                  "channel": "global"
-                }
-              ]
-            }
-          ],
-          "on": [
-            {
-              "event": "recordingComplete",
-              "target": "EmergencyNotification"
-            }
-          ]
-        },
-        {
-          "name": "EmergencyNotification",
-          "entry": [
-            {
-              "type": "invoke",
-              "serviceType": "alertEmergencyServices",
-              "done": [
-                {
-                  "name": "alertSent",
-                  "channel": "global"
-                }
-              ]
-            }
-          ],
-          "on": [
-            {
-              "event": "alertSent",
-              "target": "Monitoring"
             }
           ]
         }
@@ -755,7 +599,7 @@
               "event": "analysisComplete",
               "guards": [
                 {
-                  "expression": "threadLevel > 8"
+                  "expression": "threatLevel > 8"
                 }
               ],
               "action": [
@@ -774,5 +618,3 @@
     }
   ]
 }
-
-tetst

@@ -1,0 +1,64 @@
+amends "https://raw.githubusercontent.com/UIBK-DPS-DC/Cirrina-Specifications/main/pkl/JobDescription.pkl"
+
+import "https://raw.githubusercontent.com/UIBK-DPS-DC/Cirrina-Specifications/main/pkl/HttpServiceImplementationDescription.pkl"
+import "https://raw.githubusercontent.com/UIBK-DPS-DC/Cirrina-UseCases/main/video-surveillance/csml/accident-detect-system.pkl" as accidentDetectCSM
+
+serviceImplementations {
+
+    new HttpServiceImplementationDescription {
+        name = "transmitData"
+        cost = 1.0
+        `local` = false
+        scheme = "http"
+        host = "localhost"
+        port = 8001
+        endPoint = "/transmit"
+        method = "POST"
+    }
+    new HttpServiceImplementationDescription {
+        name = "preprocess"
+        cost = 1.0
+        `local` = false
+        scheme = "http"
+        host = "localhost"
+        port = 8001
+        endPoint = "/preprocess"
+        method = "POST"
+    }
+    new HttpServiceImplementationDescription {
+        name = "detectAbnormalPressure"
+        cost = 1.0
+        `local` = true
+        scheme = "http"
+        host = "localhost"
+        port = 8002
+        endPoint = "/detect"
+        method = "POST"
+    }
+    new HttpServiceImplementationDescription {
+        name = "recordAbnormalPressure"
+        cost = 1.0
+        `local` = false
+        scheme = "http"
+        host = "localhost"
+        port = 8001
+        endPoint = "/log"
+        method = "POST"
+    }
+      new HttpServiceImplementationDescription {
+        name = "notificationSent"
+        cost = 1.0
+        `local` = false
+        scheme = "http"
+        host = "localhost"
+        port = 8001
+        endPoint = "/notify"
+        method = "POST"
+    }
+
+}
+collaborativeStateMachine = accidentDetectCSM
+stateMachineName = "pressure"
+localData = new Mapping {}
+bindEventInstanceIds = new Listing {}
+runtimeName = "runtime"
