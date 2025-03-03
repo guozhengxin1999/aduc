@@ -43,18 +43,18 @@ pressure_data: List[Dict[str, float]] = []
 
 
 # sensor pressure
-# 1: data transmission, initial state
-@app.post("/transmit")
-async def transmit(request: Request):
-    data = await request.json()
-    if not data or "data" not in data:
-        raise HTTPException(status_code=400, detail="No data provided")
-
-    # store data in global
-    global pressure_data
-    pressure_data.extend(data["data"])  # 追加新数据
-
-    return {"message": "Data transmitted successfully", "received_data": data["data"]}
+# # 1: data transmission, initial state
+# @app.post("/transmit")
+# async def transmit(request: Request):
+#     data = await request.json()
+#     if not data or "data" not in data:
+#         raise HTTPException(status_code=400, detail="No data provided")
+#
+#     # store data in global
+#     global pressure_data
+#     pressure_data.extend(data["data"])  # 追加新数据
+#
+#     return {"message": "Data transmitted successfully", "received_data": data["data"]}
 
 
 # 2. preprocessing
