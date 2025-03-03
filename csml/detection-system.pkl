@@ -16,14 +16,12 @@ local stRecordAbnormalPressure = "recordAbnormalPressure"
 local stNotificationSent = "notificationSent"
 
 local stDeepAnalysis = "deepAnalysis"
-local stAlarm = "alarm"
 
 
 // ------------------------ Events -------------------------------
 local ePreprocessed = "preprocessed"
 local eDetectedPressure = "detectedPressure"
 local eFoundAbnormal = "foundAbnormal"
-local eRecord = "record"
 local eNotify = "notify"
 
 local eAnalyzed = "analyzed"
@@ -92,13 +90,13 @@ local sPreprocess: CSM.StateDescription = new {
     on {
         new {
             event = ePreprocessed
-            target = sAbnormalStateMachine.name
+            target = sDetection.name
         }
     }
 }
 
 local sDetection: CSM.StateDescription = new {
-    name = "Detection"
+    name = "detection"
     entry {
         new CSM.InvokeActionDescription {
             serviceType = stDetectAbnormalPressure
@@ -138,20 +136,22 @@ local sDetection: CSM.StateDescription = new {
                     }
                 }
             }
+            target = sAbnormalStateMachine.name
         }
          new {
-             event = ePreprocessed
+             event = eDetectedPressure
+             guards {
+                 new CSM.GuardDescription {
+                     expression = "\(vHasDetectedPressure) == false"
+                 }
+             }
              target = sPreprocess.name
-         }
-         new {
-            event = eRecord
-            target = sAbnormalStateMachine.name
          }
     }
 }
 
 local sAbnormalStateMachine: CSM.StateMachineDescription = new {
-    name = "AbnormalStateMachine"
+    name = "abnormalStateMachine"
     states {
         sRecording
         sNotification
@@ -159,32 +159,30 @@ local sAbnormalStateMachine: CSM.StateMachineDescription = new {
 }
 
 local sRecording: CSM.StateDescription = new {
-    name = "Recording"
+    name = "recording"
     initial = true
-    on {
-        new {
-            event = eFoundAbnormal
-            actions {
-                new CSM.InvokeActionDescription {
-                    serviceType = stRecordAbnormalPressure
-                    done {
-                        new {
-                            name = eNotify
-                            channel = "internal"
-                        }
-                    }
+    entry {
+        new CSM.InvokeActionDescription {
+            serviceType = stRecordAbnormalPressure
+            done {
+                new {
+                    name = eNotify
+                    channel = "internal"
                 }
             }
         }
-        new{
+    }
+    on {
+        new {
             event = eNotify
             target = sNotification.name
         }
     }
 }
 
+
 local sNotification: CSM.StateDescription = new {
-    name = "Notification"
+    name = "notification"
       entry {
         new CSM.InvokeActionDescription {
             serviceType = stNotificationSent
@@ -196,8 +194,6 @@ local sNotification: CSM.StateDescription = new {
             target = sRecording.name
         }
     }
-
-
 }
 
 // ------------------------ Cloud Analysis SM -------------------------------
@@ -218,7 +214,7 @@ local cloudAnalysisSM: CSM.StateMachineDescription = new {
 }
 
 local sProcessing: CSM.StateDescription = new {
-    name = "Processing"
+    name = "processing"
     initial = true
     on {
         new {
@@ -261,10 +257,16 @@ local sProcessing: CSM.StateDescription = new {
                     }
                 }
             }
+            target = sAlarm.name
         }
         new{
-            event = eAlarm
-            target = sAlarm.name
+            event = eAnalyzed
+            guards {
+                new CSM.GuardDescription{
+                     expression = "\(vHasThreat) == false"
+                }
+            }
+            target = sPreprocess.name
         }
     }
 }
@@ -277,5 +279,4 @@ local sAlarm: CSM.StateDescription = new {
             target = sPreprocess.name
         }
     }
-
 }
