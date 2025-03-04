@@ -261,11 +261,6 @@ local sProcessing: CSM.StateDescription = new {
         }
         new{
             event = eAnalyzed
-            guards {
-                new CSM.GuardDescription{
-                     expression = "\(vHasThreat) == false"
-                }
-            }
             target = sPreprocess.name
         }
     }
