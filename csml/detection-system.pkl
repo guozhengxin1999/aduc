@@ -136,7 +136,6 @@ local sDetection: CSM.StateDescription = new {
                     }
                 }
             }
-            target = sAbnormalStateMachine.name
         }
          new {
              event = eDetectedPressure
@@ -161,23 +160,29 @@ local sAbnormalStateMachine: CSM.StateMachineDescription = new {
 local sRecording: CSM.StateDescription = new {
     name = "recording"
     initial = true
-    entry {
-        new CSM.InvokeActionDescription {
-            serviceType = stRecordAbnormalPressure
-            done {
-                new {
-                    name = eNotify
-                    channel = "internal"
-                }
+    on {
+        new {
+            event = eFoundAbnormal
+            actions {
+                 new CSM.InvokeActionDescription {
+                     serviceType = stRecordAbnormalPressure
+                     done {
+                         new {
+                             name = eNotify
+                             channel = "internal"
+                         }
+                     }
+                 }
             }
         }
-    }
-    on {
         new {
             event = eNotify
             target = sNotification.name
         }
     }
+
+
+
 }
 
 
