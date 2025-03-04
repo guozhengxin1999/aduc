@@ -1,7 +1,5 @@
 from fastapi import Request
-from google.protobuf.json_format import MessageToDict
 import pressure_pb2
-import json
 
 
 async def parse_request(request: Request):
@@ -14,17 +12,15 @@ async def parse_request(request: Request):
 
         # 提取 Protobuf 消息中的字段
         result = {}
-        if input_data.fileNumber:
+        if input_data.HasField("fileNumber"):
             result["fileNumber"] = input_data.fileNumber
         if input_data.pressureData:
             result["pressureData"] = list(input_data.pressureData)
+        return result
 
-        if result:
-            return result
-        else:
-            raise ValueError("Invalid input data")
     else:
         return await request.json()
+
 
 def create_protobuf_response(data: dict):
     """创建 Protobuf 格式的响应"""
@@ -33,8 +29,6 @@ def create_protobuf_response(data: dict):
         output.pressureData.extend(data["pressureData"])  # 使用 extend 添加多个值
     elif "hasDetectedPressure" in data:
         output.hasDetectedPressure = data["hasDetectedPressure"]
-    elif "hasThreat" in data:
-        output.hasDetectedPressure = data["hasThreat"]
     else:
         raise ValueError("Invalid output data")
     return output.SerializeToString()

@@ -1,7 +1,5 @@
 from fastapi import Request
-from google.protobuf.json_format import MessageToDict
 import pressure_pb2
-import json
 
 
 async def parse_request(request: Request):
