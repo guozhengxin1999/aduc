@@ -137,10 +137,15 @@ local sDetection: CSM.StateDescription = new {
                 }
             }
         }
-         new {
-             event = eDetectedPressure
-             target = sPreprocess.name
-         }
+//          new {
+//              event = eDetectedPressure
+//              guards {
+//                  new CSM.GuardDescription {
+//                      expression = "\(vHasDetectedPressure) == false"
+//                  }
+//              }
+//              target = sPreprocess.name
+//          }
     }
 }
 
@@ -261,6 +266,11 @@ local sProcessing: CSM.StateDescription = new {
         }
         new{
             event = eAnalyzed
+            guards {
+                new CSM.GuardDescription{
+                     expression = "\(vHasThreat) == false"
+                }
+            }
             target = sPreprocess.name
         }
     }
