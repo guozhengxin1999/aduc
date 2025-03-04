@@ -136,16 +136,17 @@ local sDetection: CSM.StateDescription = new {
                     }
                 }
             }
+             target = sPreprocess.name
         }
-//          new {
-//              event = eDetectedPressure
-//              guards {
-//                  new CSM.GuardDescription {
-//                      expression = "\(vHasDetectedPressure) == false"
-//                  }
-//              }
-//              target = sPreprocess.name
-//          }
+         new {
+             event = eDetectedPressure
+             guards {
+                 new CSM.GuardDescription {
+                     expression = "\(vHasDetectedPressure) == false"
+                 }
+             }
+             target = sPreprocess.name
+         }
     }
 }
 
