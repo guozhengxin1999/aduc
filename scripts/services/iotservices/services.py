@@ -1,112 +1,80 @@
-## video and microphone sensor sm, 1. data source, 2. handle images and audios
-# iot device : pressure sensor sm, seat sensor sm
-# edge device : detect
-# cloud device :
-import base64
-import json
-import cv2
+import csv
+import os
+
 import uvicorn
 from fastapi import FastAPI, Request, HTTPException, Response
-import pandas as pd
-import numpy as np
-import logging
-from typing import List, Dict
+import json
+from utils import parse_request, create_protobuf_response
 
 app = FastAPI()
 
-# initial logs
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# ------------------------ 配置 -------------------------------
+RESOURCES_DIR = os.path.join(os.path.dirname(__file__), ".", "resources")
+PRESSURE_FILES = {
+    1: os.path.join(RESOURCES_DIR, "pressure_data_1.csv"),
+    2: os.path.join(RESOURCES_DIR, "pressure_data_2.csv"),
+    3: os.path.join(RESOURCES_DIR, "pressure_data_3.csv"),
+    4: os.path.join(RESOURCES_DIR, "pressure_data_4.csv"),
+    5: os.path.join(RESOURCES_DIR, "pressure_data_5.csv"),
+}
 
-# simulate pressure data
-pressure_data: List[Dict[str, float]] = []
+# ------------------------ 工具函数 -------------------------------
+def get_pressure_data(file_path: str) -> float:
+    """从 CSV 文件中读取所有行的压力数据"""
+    with open(file_path, "r") as file:
+        reader = csv.reader(file)
+        return [float(row[0]) for row in reader]
 
-# ## video sensor
-# # sensor captures frame
-# def capture_frame():
-#     # video stream cature frame.
-#     frame = np.ramdom.randint(0, 256, (480, 640, 3), dtype=np.uint8)
-#     return frame
-#
-# @app.post("/capture_video")
-# async def capture_video(request: Request):
-#     frame = capture_frame()
-#
-#     #Encoding image frame as base64
-#     _, buffer = cv2.imencode('.jpg', frame)
-#     frame_data = base64.b64decode(buffer).decode('utf-8')
-#
-#     response_data = {"frame": frame_data}
-#     response = json.dump(response_data)
-#
-#     return Response(content=response, media_type="application/json")
-
-
-# sensor pressure
-# # 1: data transmission, initial state
-# @app.post("/transmit")
-# async def transmit(request: Request):
-#     data = await request.json()
-#     if not data or "data" not in data:
-#         raise HTTPException(status_code=400, detail="No data provided")
-#
-#     # store data in global
-#     global pressure_data
-#     pressure_data.extend(data["data"])  # 追加新数据
-#
-#     return {"message": "Data transmitted successfully", "received_data": data["data"]}
-
-
-# 2. preprocessing
+# ------------------------ 服务实现 -------------------------------
 @app.post("/preprocess")
-async def preprocess():
-    global pressure_data
-    if not pressure_data:
-        raise HTTPException(status_code=400, detail="No data available for preprocessing")
+async def preprocess(request: Request):
+    try:
+        input_data = await parse_request(request)
+        file_number = input_data.get("fileNumber")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid input: {str(e)}")
 
-    #  DataFrame, add timestamp
-    df = pd.DataFrame(pressure_data, columns=['pressure'])
-    df['timestamp'] = pd.date_range(start='26/2/2025', periods=len(df), freq='T')
+    if file_number not in PRESSURE_FILES:
+        raise HTTPException(status_code=400, detail=f"Invalid file number: {file_number}")
 
-    # update global data
-    pressure_data = df.to_dict('records')
+    # 读取压力数据
+    file_path = PRESSURE_FILES[file_number]
+    try:
+        pressure_data = get_pressure_data(file_path)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to read pressure data: {str(e)}")
 
-    return {"message": "Data preprocessed successfully", "data": pressure_data}
+    # 准备响应数据
+    response_data = {"pressureData": pressure_data}
+    if "application/x-protobuf" in request.headers.get("Content-Type", ""):
+        response = create_protobuf_response(response_data)
+        media_type = "application/x-protobuf"
+    else:
+        response = json.dumps(response_data)
+        media_type = "application/json"
 
+    return Response(content=response, media_type=media_type)
 
-# 4. recording logs
-@app.post("/log")
-async def log():
-    global pressure_data
-    if not pressure_data:
-        raise HTTPException(status_code=400, detail="No data available to log")
-
-    # record data
-    for record in pressure_data:
-        logger.info(f"Record: {record}")
-
-    return {"message": "Data logged successfully"}
-
-
-# 5. notifying
 @app.post("/notify")
 async def notify():
-    global pressure_data
-    if not pressure_data:
-        raise HTTPException(status_code=400, detail="No data available to notify")
+    # 发送通知逻辑
+    print("Notification sent: Abnormal pressure detected!")
+    return Response(status_code=200)
 
-    # print abnormal data
-    anomalies = [record for record in pressure_data if record.get('anomaly', 0) == 1]
-    for anomaly in anomalies:
-        logger.info(f"Anomaly detected: {anomaly}")
+@app.post("/record")
+async def record(request: Request):
+    try:
+        input_data = await parse_request(request)
+        pressure_data = input_data.get("pressureData")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid input: {str(e)}")
 
-    return {"message": "Notification sent successfully", "anomalies": anomalies}
+    # 记录逻辑
+    with open("abnormal_records.txt", "a") as file:
+        file.write(f"{pressure_data}\n")
 
+    return Response(status_code=200)
 
-# microphone sensor
-
-
+# ------------------------ 启动服务 -------------------------------
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8002)
-
-
+    uvicorn.run(app, host="0.0.0.0", port=8000)
