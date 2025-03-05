@@ -5,8 +5,7 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 WORKDIR /app
 
-COPY pressure_pb2.py .
-COPY utils.py .
+COPY ContextVariable_pb2.py .
 COPY services.py .
 COPY resources resources
 
