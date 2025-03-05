@@ -181,17 +181,8 @@ local sRecording: CSM.StateDescription = new {
             actions {
                  new CSM.InvokeActionDescription {
                      serviceType = stRecordAbnormalPressure
-                     done {
-                          new {
-                              name = eNotify
-                              channel = "internal"
-                          }
-                     }
                  }
             }
-        }
-        new {
-            event = eNotify
             target = sNotification.name
         }
     }
@@ -206,17 +197,8 @@ local sNotification: CSM.StateDescription = new {
               actions {
                   new CSM.InvokeActionDescription {
                       serviceType = stNotificationSent
-                      done {
-                          new {
-                              name = eNofityDone
-                              channel = "internal"
-                          }
-                      }
                   }
               }
-          }
-          new {
-              event = eNofityDone
               target = sRecording.name
           }
     }
