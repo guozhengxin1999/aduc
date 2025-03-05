@@ -213,7 +213,7 @@ local sNotification: CSM.StateDescription = new {
 
 // ------------------------ Cloud Analysis SM -------------------------------
 local cloudAnalysisSM: CSM.StateMachineDescription = new {
-    name = "cloudAnalysis"
+    name = "cloud"
     localContext {
         variables {
             new {
