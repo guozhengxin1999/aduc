@@ -128,25 +128,21 @@ local sDetection: CSM.StateDescription = new {
                     expression = "\(vHasDetectedPressure) == true"
                 }
             }
-            actions {
-                new CSM.RaiseActionDescription{
-                    event{
-                        name = eFoundAbnormal
-                        channel = "global"
-                        data {
-                            pressureContextVariableDescription
-                        }
-                    }
-                }
-            }
+//             actions {
+//                 new CSM.RaiseActionDescription{
+//                     event{
+//                         name = eFoundAbnormal
+//                         channel = "global"
+//                         data {
+//                             pressureContextVariableDescription
+//                         }
+//                     }
+//                 }
+//             }
         }
         new {
             event = eDetectedPressure
-            guards {
-                new CSM.GuardDescription{
-                    expression = "\(vHasDetectedPressure) == True"
-                }
-            }
+
             target = sPreprocess.name
 //             actions {
 //                 new CSM.RaiseActionDescription{
