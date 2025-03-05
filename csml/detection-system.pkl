@@ -246,33 +246,34 @@ local sProcessing: CSM.StateDescription = new {
 //                     }
                     done {
                         new {
-                            name = eAnalyzed
+                            name = eAlarm
                             channel = "internal"
                         }
                     }
                 }
             }
+            target = sAlarm.name
         }
-        new {
-            event = eAnalyzed
+//         new {
+//             event = eAnalyzed
 //             guards {
 //                 new CSM.GuardDescription {
 //                     expression = "\(vHasThreat) == true"
 //                 }
 //             }
-            actions {
-                new CSM.RaiseActionDescription {
-                    event {
-                        name = eAlarm
-                        channel = "internal"
-                    }
-                }
-            }
-        }
-        new {
-            event = eAlarm
-            target = sAlarm.name
-        }
+//             actions {
+//                 new CSM.RaiseActionDescription {
+//                     event {
+//                         name = eAlarm
+//                         channel = "internal"
+//                     }
+//                 }
+//             }
+//         }
+//         new {
+//             event = eAlarm
+//             target = sAlarm.name
+//         }
     }
 }
 
