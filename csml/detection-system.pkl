@@ -142,12 +142,6 @@ local sDetection: CSM.StateDescription = new {
                         }
                     }
                 }
-                 new CSM.RaiseActionDescription{
-                    event{
-                        name = eRecord
-                        channel = "internal"
-                    }
-                }
             }
         }
          new {
