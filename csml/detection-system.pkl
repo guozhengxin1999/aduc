@@ -138,9 +138,9 @@ local sDetection: CSM.StateDescription = new {
                     event{
                         name = eFoundAbnormal
                         channel = "global"
-                        data {
-                            pressureContextVariableDescription
-                        }
+//                         data {
+//                             pressureContextVariableDescription
+//                         }
                     }
                 }
             }
@@ -248,14 +248,14 @@ local sProcessing: CSM.StateDescription = new {
             actions {
                 new CSM.InvokeActionDescription {
                     serviceType = stDeepAnalysis
-                    input {
-                        pressureContextVariableDescription
-                    }
-                    output {
-                        new {
-                            reference =vHasThreat
-                        }
-                    }
+//                     input {
+//                         pressureContextVariableDescription
+//                     }
+//                     output {
+//                         new {
+//                             reference =vHasThreat
+//                         }
+//                     }
                     done {
                         new {
                             name = eAnalyzed
@@ -267,11 +267,11 @@ local sProcessing: CSM.StateDescription = new {
         }
         new {
             event = eAnalyzed
-            guards {
-                new CSM.GuardDescription {
-                    expression = "\(vHasThreat) == true"
-                }
-            }
+//             guards {
+//                 new CSM.GuardDescription {
+//                     expression = "\(vHasThreat) == true"
+//                 }
+//             }
             actions {
                 new CSM.RaiseActionDescription {
                     event {
