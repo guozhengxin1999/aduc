@@ -138,12 +138,7 @@ local sDetection: CSM.StateDescription = new {
                         }
                     }
                 }
-            }
-        }
-        new {
-            event = eDetectedPressure
-            actions {
-                new CSM.RaiseActionDescription{
+                  new CSM.RaiseActionDescription{
                     event{
                         name = eRecord
                         channel = "internal"
@@ -151,6 +146,12 @@ local sDetection: CSM.StateDescription = new {
                 }
             }
         }
+//         new {
+//             event = eDetectedPressure
+//             actions {
+//
+//             }
+//         }
          new {
              event = eDetectedPressure
              guards {
