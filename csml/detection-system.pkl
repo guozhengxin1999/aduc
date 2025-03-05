@@ -125,7 +125,7 @@ local sDetection: CSM.StateDescription = new {
             event = eDetectedPressure
             guards {
                 new CSM.GuardDescription{
-                    expression = "\(vHasDetectedPressure) == True"
+                    expression = "\(vHasDetectedPressure) == true"
                 }
             }
             actions {
@@ -144,7 +144,7 @@ local sDetection: CSM.StateDescription = new {
             event = eDetectedPressure
             guards {
                 new CSM.GuardDescription{
-                    expression = "\(vHasDetectedPressure) == True"
+                    expression = "\(vHasDetectedPressure) == 1"
                 }
             }
             actions {
