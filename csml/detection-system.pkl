@@ -22,6 +22,8 @@ local stDeepAnalysis = "deepAnalysis"
 local ePreprocessed = "preprocessed"
 local eDetectedPressure = "detectedPressure"
 local eFoundAbnormal = "foundAbnormal"
+local eRecord = "record"
+
 local eNotify = "notify"
 
 local eAnalyzed = "analyzed"
@@ -135,6 +137,12 @@ local sDetection: CSM.StateDescription = new {
                         }
                     }
                 }
+                 new CSM.RaiseActionDescription{
+                    event{
+                        name = eRecord
+                        channel = "internal"
+                    }
+                }
             }
         }
          new {
@@ -162,16 +170,10 @@ local sRecording: CSM.StateDescription = new {
     initial = true
     on {
         new {
-            event = eFoundAbnormal
+            event = eRecord
             actions {
                  new CSM.InvokeActionDescription {
                      serviceType = stRecordAbnormalPressure
-                     done {
-                         new {
-                             name = eNotify
-                             channel = "internal"
-                         }
-                     }
                  }
             }
         }
