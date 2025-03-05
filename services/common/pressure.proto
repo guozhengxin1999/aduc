@@ -3,7 +3,7 @@ syntax = "proto3";
 package pressure;
 
 message Input {
-    int32 fileNumber = 1;  // 文件编号
+    string name = 1;  // 文件编号
     repeated float pressureData = 2; // 压力数据
 }
 
