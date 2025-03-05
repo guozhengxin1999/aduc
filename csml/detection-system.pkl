@@ -136,7 +136,6 @@ local sDetection: CSM.StateDescription = new {
                     }
                 }
             }
-             target = sPreprocess.name
         }
          new {
              event = eDetectedPressure
@@ -181,9 +180,6 @@ local sRecording: CSM.StateDescription = new {
             target = sNotification.name
         }
     }
-
-
-
 }
 
 
