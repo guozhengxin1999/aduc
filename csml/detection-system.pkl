@@ -144,17 +144,18 @@ local sDetection: CSM.StateDescription = new {
             event = eDetectedPressure
             guards {
                 new CSM.GuardDescription{
-                    expression = "\(vHasDetectedPressure) == 1"
+                    expression = "\(vHasDetectedPressure) == true"
                 }
             }
-            actions {
-                new CSM.RaiseActionDescription{
-                    event{
-                        name = eRecord
-                        channel = "global"
-                    }
-                }
-            }
+            target = sPreprocess.name
+//             actions {
+//                 new CSM.RaiseActionDescription{
+//                     event{
+//                         name = eRecord
+//                         channel = "global"
+//                     }
+//                 }
+//             }
         }
          new {
              event = eDetectedPressure
