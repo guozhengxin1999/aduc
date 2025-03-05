@@ -1,20 +1,10 @@
 amends "https://raw.githubusercontent.com/UIBK-DPS-DC/Cirrina-Specifications/main/pkl/JobDescription.pkl"
 
 import "https://raw.githubusercontent.com/UIBK-DPS-DC/Cirrina-Specifications/main/pkl/HttpServiceImplementationDescription.pkl"
-import "https://raw.githubusercontent.com/UIBK-DPS-DC/Cirrina-UseCases/main/video-surveillance/csml/accident-detect-system.pkl" as accidentDetectCSM
+import "https://raw.githubusercontent.com/guozhengxin1999/aduc/refs/heads/main/csml/detection-system.pkl" as accidentDetectCSM
 
 serviceImplementations {
 
-    new HttpServiceImplementationDescription {
-        name = "transmitData"
-        cost = 1.0
-        `local` = false
-        scheme = "http"
-        host = "localhost"
-        port = 8001
-        endPoint = "/transmit"
-        method = "POST"
-    }
     new HttpServiceImplementationDescription {
         name = "preprocess"
         cost = 1.0
@@ -42,7 +32,7 @@ serviceImplementations {
         scheme = "http"
         host = "localhost"
         port = 8001
-        endPoint = "/log"
+        endPoint = "/record"
         method = "POST"
     }
       new HttpServiceImplementationDescription {
@@ -53,6 +43,17 @@ serviceImplementations {
         host = "localhost"
         port = 8001
         endPoint = "/notify"
+        method = "POST"
+    }
+
+  new HttpServiceImplementationDescription {
+        name = "deepAnalysis"
+        cost = 1.0
+        `local` = false
+        scheme = "http"
+        host = "localhost"
+        port = 8003
+        endPoint = "/analysis"
         method = "POST"
     }
 
