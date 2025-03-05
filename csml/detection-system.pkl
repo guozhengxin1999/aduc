@@ -140,22 +140,22 @@ local sDetection: CSM.StateDescription = new {
                 }
             }
         }
-        new {
-            event = eDetectedPressure
-//             guards {
-//                 new CSM.GuardDescription{
-//                     expression = "\(vHasDetectedPressure) == True"
+//         new {
+//             event = eDetectedPressure
+// //             guards {
+// //                 new CSM.GuardDescription{
+// //                     expression = "\(vHasDetectedPressure) == True"
+// //                 }
+// //             }
+//             actions {
+//                 new CSM.RaiseActionDescription{
+//                     event{
+//                         name = eRecord
+//                         channel = "global"
+//                     }
 //                 }
 //             }
-            actions {
-                new CSM.RaiseActionDescription{
-                    event{
-                        name = eRecord
-                        channel = "global"
-                    }
-                }
-            }
-        }
+//         }
          new {
              event = eDetectedPressure
              guards {
