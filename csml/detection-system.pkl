@@ -23,6 +23,7 @@ local ePreprocessed = "preprocessed"
 local eDetectedPressure = "detectedPressure"
 local eFoundAbnormal = "foundAbnormal"
 local eRecord = "record"
+local eNeedRecord = "needRecord"
 
 local eNotify = "notify"
 local eNofityDone = "notifyDone"
@@ -117,6 +118,10 @@ local sDetection: CSM.StateDescription = new {
                     name = eDetectedPressure
                     channel = "internal"
                 }
+                new {
+                    name = eNeedRecord
+                    channel = "internal"
+                }
             }
         }
     }
@@ -141,7 +146,7 @@ local sDetection: CSM.StateDescription = new {
             }
         }
         new {
-            event = eDetectedPressure
+            event = eNeedRecord
             guards {
                 new CSM.GuardDescription{
                     expression = "\(vHasDetectedPressure) == true"
@@ -156,15 +161,6 @@ local sDetection: CSM.StateDescription = new {
                 }
             }
         }
-         new {
-             event = eDetectedPressure
-             guards {
-                 new CSM.GuardDescription {
-                     expression = "\(vHasDetectedPressure) == false"
-                 }
-             }
-             target = sPreprocess.name
-         }
     }
 }
 
