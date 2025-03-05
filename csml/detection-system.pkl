@@ -145,7 +145,7 @@ local sDetection: CSM.StateDescription = new {
                  new CSM.RaiseActionDescription{
                     event{
                         name = eRecord
-                        channel = "global"
+                        channel = "internal"
                     }
                 }
             }
@@ -204,7 +204,7 @@ local sNotification: CSM.StateDescription = new {
             done {
                 new {
                     name = eNofityDone
-                    channel = "global"
+                    channel = "internal"
                 }
             }
         }
