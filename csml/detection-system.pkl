@@ -238,10 +238,7 @@ local sProcessing: CSM.StateDescription = new {
                 new CSM.InvokeActionDescription {
                     serviceType = stDeepAnalysis
                     input {
-                        new {
-                            name = "pressure"
-                            value = "$pressureData"
-                        }
+                        pressureContextVariableDescription
                     }
                     output {
                         new {
