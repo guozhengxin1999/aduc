@@ -238,7 +238,10 @@ local sProcessing: CSM.StateDescription = new {
                 new CSM.InvokeActionDescription {
                     serviceType = stDeepAnalysis
                     input {
-                        pressureContextVariableDescription
+                        new {
+                            name = "pressure"
+                            value = "$pressure"
+                        }
                     }
                     output {
                         new {
@@ -265,7 +268,7 @@ local sProcessing: CSM.StateDescription = new {
                 new CSM.RaiseActionDescription {
                     event {
                         name = eAlarm
-                        channel = "global"
+                        channel = "internal"
                     }
                 }
             }
