@@ -95,10 +95,6 @@ local sPreprocess: CSM.StateDescription = new {
             event = ePreprocessed
             target = sDetection.name
         }
-        new{
-            event = eNofityDone
-            target = sPreprocess.name
-        }
     }
 }
 
@@ -142,7 +138,17 @@ local sDetection: CSM.StateDescription = new {
                         }
                     }
                 }
-                 new CSM.RaiseActionDescription{
+            }
+        }
+        new {
+            event = eDetectedPressure
+            guards {
+                new CSM.GuardDescription{
+                    expression = "\(vHasDetectedPressure) == true"
+                }
+            }
+            actions {
+                new CSM.RaiseActionDescription{
                     event{
                         name = eRecord
                         channel = "internal"
@@ -198,16 +204,25 @@ local sRecording: CSM.StateDescription = new {
 
 local sNotification: CSM.StateDescription = new {
     name = "notification"
-      entry {
-        new CSM.InvokeActionDescription {
-            serviceType = stNotificationSent
-            done {
-                new {
-                    name = eNofityDone
-                    channel = "internal"
-                }
-            }
-        }
+      on {
+          new {
+              event = eNotify
+              actions {
+                  new CSM.InvokeActionDescription {
+                      serviceType = stNotificationSent
+                      done {
+                          new {
+                              name = eNofityDone
+                              channel = "internal"
+                          }
+                      }
+                  }
+              }
+          }
+          new {
+              event = eNofityDone
+              target = sRecording.name
+          }
     }
 }
 
@@ -238,10 +253,7 @@ local sProcessing: CSM.StateDescription = new {
                 new CSM.InvokeActionDescription {
                     serviceType = stDeepAnalysis
                     input {
-                        new {
-                            name = "pressureData"
-                            value = "$pressureData"
-                        }
+                        pressureContextVariableDescription
                     }
                     output {
                         new {
@@ -272,16 +284,10 @@ local sProcessing: CSM.StateDescription = new {
                     }
                 }
             }
-            target = sAlarm.name
         }
-        new{
-            event = eAnalyzed
-            guards {
-                new CSM.GuardDescription{
-                     expression = "\(vHasThreat) == false"
-                }
-            }
-            target = sProcessing.name
+        new {
+            event = eAlarm
+            target = sAlarm.name
         }
     }
 }
