@@ -110,7 +110,7 @@ local sDetection: CSM.StateDescription = new {
             }
             output {
                 new {
-                    reference = vHasDetectedPressure
+                    reference = "hasDetectedPressure"
                 }
             }
             done {
