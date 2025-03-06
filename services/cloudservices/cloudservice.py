@@ -28,57 +28,55 @@ def create_protobuf_response(response_data: dict):
 @app.post("/analysis")
 async def analysis(request: Request):
     # 发送通知逻辑
-    return Response(status_code=200)
+    pressure_data: List[float] = []
 
-    # pressure_data: List[float] = []
-    #
-    # # 尝试读取 pressureData
-    # if proto:
-    #     # 读取原始请求体
-    #     body = await request.body()
-    #
-    #     # 解析 Protobuf 消息
-    #     context_variables = ContextVariable_pb2.ContextVariables()
-    #     context_variables.ParseFromString(body)
-    #
-    #     pressure_bytes = None
-    #     # 提取 pressureData
-    #     for context_variable in context_variables.data:
-    #         if context_variable.name == "pressureData":
-    #             pressure_bytes = context_variable.value.bytes
-    #             pressure_data = [struct.unpack("f", pressure_bytes[i:i + 4])[0] for i in
-    #                              range(0, len(pressure_bytes), 4)]
-    #             break
-    # else:
-    #     # 解析 JSON 请求
-    #     context_variables = await request.json()
-    #
-    #     # 获取 pressureData
-    #     if "pressureData" in context_variables:
-    #         pressure_data = context_variables["pressureData"]
-    #
-    # # 检查 pressureData 是否有效
-    # if not pressure_data or not isinstance(pressure_data, list):
-    #     raise HTTPException(
-    #         status_code=400, detail="Invalid pressureData: No data provided or data is not a list"
-    #     )
-    #
-    # # 深度分析逻辑
-    # has_threat = 1  # 100% 的概率返回 True
-    #
-    # # 准备响应数据
-    # response_data = {"hasThreat": has_threat}
-    # if proto:
-    #     # 创建 Protobuf 格式的响应
-    #     response = create_protobuf_response(response_data)
-    #     media_type = "application/x-protobuf"
-    # else:
-    #     # 创建 JSON 格式的响应
-    #     response = json.dumps(response_data)
-    #     media_type = "application/json"
-    #
-    # # 返回响应
-    # return Response(content=response, media_type=media_type)
+    # 尝试读取 pressureData
+    if proto:
+        # 读取原始请求体
+        body = await request.body()
+
+        # 解析 Protobuf 消息
+        context_variables = ContextVariable_pb2.ContextVariables()
+        context_variables.ParseFromString(body)
+
+        pressure_bytes = None
+        # 提取 pressureData
+        for context_variable in context_variables.data:
+            if context_variable.name == "pressureData":
+                pressure_bytes = context_variable.value.bytes
+                pressure_data = [struct.unpack("f", pressure_bytes[i:i + 4])[0] for i in
+                                 range(0, len(pressure_bytes), 4)]
+                break
+    else:
+        # 解析 JSON 请求
+        context_variables = await request.json()
+
+        # 获取 pressureData
+        if "pressureData" in context_variables:
+            pressure_data = context_variables["pressureData"]
+
+    # 检查 pressureData 是否有效
+    if not pressure_data or not isinstance(pressure_data, list):
+        raise HTTPException(
+            status_code=400, detail="Invalid pressureData: No data provided or data is not a list"
+        )
+
+    # 深度分析逻辑
+    has_threat = 1  # 100% 的概率返回 True
+
+    # 准备响应数据
+    response_data = {"hasThreat": has_threat}
+    if proto:
+        # 创建 Protobuf 格式的响应
+        response = create_protobuf_response(response_data)
+        media_type = "application/x-protobuf"
+    else:
+        # 创建 JSON 格式的响应
+        response = json.dumps(response_data)
+        media_type = "application/json"
+
+    # 返回响应
+    return Response(content=response, media_type=media_type)
 
 # # ------------------------ 启动服务 -------------------------------
 if __name__ == "__main__":

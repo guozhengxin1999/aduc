@@ -245,7 +245,7 @@ local sProcessing: CSM.StateDescription = new {
                     }
                     output {
                         new {
-                            reference =vHasThreat
+                            reference = "hasThreat"
                         }
                     }
                     done {
