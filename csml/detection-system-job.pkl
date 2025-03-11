@@ -60,6 +60,7 @@ serviceImplementations {
 }
 collaborativeStateMachine = accidentDetectCSM
 stateMachineName = "pressure"
+//stateMachineName = "cloud"
 localData = new Mapping {}
 bindEventInstanceIds = new Listing {}
 runtimeName = "runtime"
