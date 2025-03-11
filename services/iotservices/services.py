@@ -11,6 +11,8 @@ import ContextVariable_pb2
 
 app = FastAPI()
 
+#test
+
 # Decide whether protobuf should be used (optional environment variable)
 proto = "PROTO" not in os.environ or os.environ["PROTO"].lower() in ["true", "t", "1"]
 
