@@ -25,7 +25,7 @@ local stDoorUnlock = "doorUnlock"
 local stPowerCutoff = "powerCutoff"
 
 local stVehicleControlHandle = "vehicleControlHandle"
-local stDepartmentHandle = "DepartmentHandle"
+local stDepartmentHandle = "departmentHandle"
 local stCloudAnalysis = "cloudAnalysis"
 local stCloudNotify = "cloudNotify"
 

@@ -15,8 +15,40 @@ serviceImplementations {
         endPoint = "/preprocess"
         method = "POST"
     }
+   new HttpServiceImplementationDescription {
+        name = "airbagCheck"
+        cost = 1.0
+        `local` = false
+        scheme = "http"
+        host = "localhost"
+        port = 8001
+        endPoint = "/airbagCheck"
+        method = "POST"
+    }
+
+  new HttpServiceImplementationDescription {
+        name = "doorCheck"
+        cost = 1.0
+        `local` = false
+        scheme = "http"
+        host = "localhost"
+        port = 8001
+        endPoint = "/doorCheck"
+        method = "POST"
+    }
+  new HttpServiceImplementationDescription {
+        name = "seatCheck"
+        cost = 1.0
+        `local` = false
+        scheme = "http"
+        host = "localhost"
+        port = 8001
+        endPoint = "/seatCheck"
+        method = "POST"
+    }
+
     new HttpServiceImplementationDescription {
-        name = "detectAbnormalPressure"
+        name = "detect"
         cost = 1.0
         `local` = true
         scheme = "http"
@@ -26,34 +58,97 @@ serviceImplementations {
         method = "POST"
     }
     new HttpServiceImplementationDescription {
-        name = "recordAbnormalPressure"
+        name = "sensorDiagnosis"
         cost = 1.0
-        `local` = false
+        `local` = true
         scheme = "http"
         host = "localhost"
-        port = 8001
-        endPoint = "/record"
+        port = 8002
+        endPoint = "/sensorDiagnosis"
         method = "POST"
-    }
-      new HttpServiceImplementationDescription {
-        name = "notificationSent"
+     }
+   new HttpServiceImplementationDescription {
+        name = "sensorNotify"
         cost = 1.0
-        `local` = false
+        `local` = true
         scheme = "http"
         host = "localhost"
-        port = 8001
-        endPoint = "/notify"
+        port = 8002
+        endPoint = "/sensorNotify"
         method = "POST"
-    }
+     }
 
   new HttpServiceImplementationDescription {
-        name = "deepAnalysis"
+        name = "passengerCount"
+        cost = 1.0
+        `local` = true
+        scheme = "http"
+        host = "localhost"
+        port = 8002
+        endPoint = "/passengerCount"
+        method = "POST"
+     }
+    new HttpServiceImplementationDescription {
+        name = "doorUnlock"
+        cost = 1.0
+        `local` = true
+        scheme = "http"
+        host = "localhost"
+        port = 8002
+        endPoint = "/doorUnlock"
+        method = "POST"
+     }
+
+    new HttpServiceImplementationDescription {
+        name = "powerCutoff"
+        cost = 1.0
+        `local` = true
+        scheme = "http"
+        host = "localhost"
+        port = 8002
+        endPoint = "/powerCutoff"
+        method = "POST"
+     }
+
+ new HttpServiceImplementationDescription {
+        name = "vehicleControlHandle"
+        cost = 1.0
+        `local` = true
+        scheme = "http"
+        host = "localhost"
+        port = 8003
+        endPoint = "/vehicleControlHandle"
+        method = "POST"
+     }
+   new HttpServiceImplementationDescription {
+        name = "departmentHandle"
+        cost = 1.0
+        `local` = true
+        scheme = "http"
+        host = "localhost"
+        port = 8003
+        endPoint = "/departmentHandle"
+        method = "POST"
+     }
+
+  new HttpServiceImplementationDescription {
+        name = "cloudAnalysis"
         cost = 1.0
         `local` = false
         scheme = "http"
         host = "localhost"
         port = 8003
         endPoint = "/analysis"
+        method = "POST"
+    }
+     new HttpServiceImplementationDescription {
+        name = "cloudNotify"
+        cost = 1.0
+        `local` = false
+        scheme = "http"
+        host = "localhost"
+        port = 8003
+        endPoint = "/cloudNotify"
         method = "POST"
     }
 

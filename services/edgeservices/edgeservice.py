@@ -75,6 +75,31 @@ async def detect(request: Request):
     # 返回响应
     return Response(content=response, media_type=media_type)
 
+
+@app.post("/passengerCount")
+async def passengerCount(request : Request):
+
+    ###### Count passenger using seat data
+    return Response(status_code=200)
+
+
+@app.post("/sensorDiagnosis")
+async def sensorDiagnosis():
+    return Response(status_code=200)
+
+@app.post("/sensorNotify")
+async def sensorNotify():
+    return Response(status_code=200)
+
+
+@app.post("/doorUnlock")
+async def doorUnlock():
+    return Response(status_code=200)
+
+@app.post("/powerCutoff")
+async def powerCutoff():
+    return Response(status_code=200)
+
 # ------------------------ 启动服务 -------------------------------
 if __name__ == "__main__":
     uvicorn.run(app, host="localhost", port=8002)

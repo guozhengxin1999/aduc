@@ -78,6 +78,21 @@ async def analysis(request: Request):
     # 返回响应
     return Response(content=response, media_type=media_type)
 
+@app.post("/vehicleControlHandle")
+async def vehicleControlHandle():
+    # 发送通知逻辑
+    return Response(status_code=200)
+
+@app.post("/departmentHandle")
+async def departmentHandle():
+    # 发送通知逻辑
+    return Response(status_code=200)
+
+@app.post("/cloudNotify")
+async def cloudNotify():
+    # 发送通知逻辑
+    return Response(status_code=200)
+
 # # ------------------------ 启动服务 -------------------------------
 if __name__ == "__main__":
     uvicorn.run(app, host="localhost", port=8003)

@@ -94,16 +94,27 @@ async def preprocess(request: Request):
     # Return the protobuf response
     return Response(content=response, media_type=media_type)
 
-
-@app.post("/notify")
-async def notify():
+@app.post("/airbagCheck")
+async def airbagCheck(request: Request):
     # 发送通知逻辑
+
+    ###### Count passenger using seat data
     return Response(status_code=200)
 
 
-@app.post("/record")
-async def record():
+@app.post("/doorCheck")
+async def doorCheck(request: Request):
     # 发送通知逻辑
+
+    ###### Count passenger using seat data
+    return Response(status_code=200)
+
+
+@app.post("/seatCheck")
+async def seatCheck(request: Request):
+    # 发送通知逻辑
+
+    ###### Count passenger using seat data
     return Response(status_code=200)
 
 
