@@ -1,7 +1,7 @@
 amends "https://raw.githubusercontent.com/UIBK-DPS-DC/Cirrina-Specifications/main/pkl/JobDescription.pkl"
 
 import "https://raw.githubusercontent.com/UIBK-DPS-DC/Cirrina-Specifications/main/pkl/HttpServiceImplementationDescription.pkl"
-import "https://raw.githubusercontent.com/guozhengxin1999/aduc/refs/heads/main/csml/detection-system.pkl" as accidentDetectCSM
+import "https://raw.githubusercontent.com/guozhengxin1999/aduc/refs/heads/main/csml/detection-system-1.pkl" as accidentDetectCSM
 
 serviceImplementations {
 
