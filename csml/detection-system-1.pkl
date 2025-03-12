@@ -1,0 +1,748 @@
+amends "https://raw.githubusercontent.com/UIBK-DPS-DC/Cirrina-Specifications/main/pkl/CollaborativeStateMachineDescription.pkl"
+import "https://raw.githubusercontent.com/UIBK-DPS-DC/Cirrina-Specifications/main/pkl/CollaborativeStateMachineDescription.pkl" as CSM
+
+// ------------------------ CSM -------------------------------
+name = "Accident Detect System"
+version = "2.0"
+stateMachines {
+    pressureSM
+    cloudSM
+    departmentSM
+    vehicleControlSM
+}
+
+// ------------------------ Service Types -------------------------------
+local stPreprocess = "preprocess"
+local stAirbagCheck = "airbagCheck"
+local stDoorCheck = "doorCheck"
+local stSeatCheck = "seatCheck"
+local stDetect = "detect"
+
+local stSensorDiagnosis = "sensorDiagnosis"
+local stSensorNotify = "sensorNotify"
+local stPassengerCount = "passengerCount"
+local stDoorUnlock = "doorUnlock"
+local stPowerCutoff = "powerCutoff"
+
+local stVehicleControlHandle = "vehicleControlHandle"
+local stDepartmentHandle = "departmentHandle"
+local stCloudAnalysis = "cloudAnalysis"
+local stCloudNotify = "cloudNotify"
+
+
+// ------------------------ Events -------------------------------
+local ePreprocessed = "preprocessed"
+local eDetectNormal = "detectNormal"
+
+local eDeepDetect = "deepDetect"
+local eSensorFault = "sensorFault"
+local eVehicleControlHandle = "vehicleControlHandle"
+local eEmergencyHandled = "emergencyHandled"
+
+local eFrontImpact = "frontImpact"
+local eSideImpact = "sideImpact"
+local eRearImpact = "rearImpact"
+local eRollover = "rollover"
+local eMultiImpact = "multiImpact"
+
+// ------------------------ Variables -------------------------------
+local vHasThreat = "hasThreat"
+
+local vAirBagDone = "airBagDone"
+local vDoorDone = "doorDone"
+local vSeatDone = "seatDone"
+// ------------------------ ContextVariableDescriptions -------------------------------
+local pressureContextVariableDescription: CSM.ContextVariableDescription = new {
+    name = "pressureData"
+    value = "pressureData"
+}
+local airbagContextVariableDescription: CSM.ContextVariableDescription = new {
+    name = "airbagData"
+    value = "airbagData"
+}
+local doorContextVariableDescription: CSM.ContextVariableDescription = new {
+    name = "doorData"
+    value = "doorData"
+}
+local seatContextVariableDescription: CSM.ContextVariableDescription = new {
+    name = "seatData"
+    value = "seatData"
+}
+
+
+// ------------------------ Pressure SM -------------------------------
+local pressureSM: CSM.StateMachineDescription = new {
+    name = "pressure"
+    localContext {
+        variables {
+            new {
+                name = "pressureData"
+                value = "''"
+            }
+            new {
+                name = "airbagData"
+                value = "''"
+            }
+            new {
+                name = "doorData"
+                value = "''"
+            }
+            new {
+                name = "seatData"
+                value = "''"
+            }
+             new {
+                name = vAirBagDone
+                value = "false"
+            }
+            new {
+                name = vDoorDone
+                value = "false"
+            }
+            new {
+                name = vSeatDone
+                value = "false"
+            }
+            new {
+                name = "accidentType"
+                value = "normal"
+            }
+        }
+    }
+    states {
+        sPreprocess
+        sAirbagDetection
+        sDoorDetection
+        sSeatDetection
+        sDetect
+
+    }
+    stateMachines {
+        sensorDiagnosisSM
+        passnegerCountSM
+        doorControlSM
+        powerControlSM
+    }
+}
+
+local sPreprocess: CSM.StateDescription = new {
+    name = "preprocess"
+    initial = true
+    entry {
+        new CSM.InvokeActionDescription {
+            serviceType = stPreprocess
+             input {
+                new {
+                    name = "fileNumber"
+                    value = "1"
+                }
+            }
+            output {
+                new {
+                    reference = "airbagData"
+                }
+                new {
+                    reference = "doorData"
+                }
+                new {
+                    reference = "seatData"
+                }
+            }
+            done {
+                new {
+                    name = ePreprocessed
+                    channel = "internal"
+                }
+            }
+        }
+    }
+    on {
+        new {
+            event = eDetectNormal
+            target = sPreprocess.name
+        }
+    }
+}
+
+local sAirbagDetection: CSM.StateDescription = new {
+    name = "airBagDetection"
+    on {
+        new {
+            event = ePreprocessed
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stAirbagCheck
+                    input {
+                        airbagContextVariableDescription
+                    }
+                    output {
+                        new {
+                            reference = "airBagDone"
+                        }
+                        new {
+                            reference = "airbagData"
+                        }
+                    }
+                    done {
+                        new {
+                            name = eDeepDetect
+                            channel = "internal"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+local sSeatDetection: CSM.StateDescription = new {
+    name = "seatDetection"
+    on {
+        new {
+            event = ePreprocessed
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stSeatCheck
+                    input {
+                       seatContextVariableDescription
+                    }
+                    output {
+                        new {
+                            reference = "seatDone"
+                        }
+                         new {
+                            reference = "seatData"
+                        }
+                    }
+                    done {
+                        new {
+                            name = eDeepDetect
+                            channel = "internal"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+local sDoorDetection: CSM.StateDescription = new {
+    name = "doorDetection"
+    on {
+        new {
+            event = ePreprocessed
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stDoorCheck
+                    input {
+                       doorContextVariableDescription
+                    }
+                    output {
+                        new {
+                            reference = "doorDone"
+                        }
+                          new {
+                            reference = "doorData"
+                        }
+                    }
+                    done {
+                        new {
+                            name = eDeepDetect
+                            channel = "internal"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+local sDetect: CSM.StateDescription = new {
+    name = "detect"
+    on {
+        new {
+            event = eDeepDetect
+            guards {
+                new CSM.GuardDescription {
+                    expression = "airBagDone && doorDone && seatDone"
+                }
+            }
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stDetect
+                    input {
+                         new {
+                            name = "airbagData"
+                            value = "$airbagData"
+                        }
+                        new {
+                            name = "doorData"
+                            value = "$doorData"
+                        }
+                         new {
+                            name = "seatData"
+                            value = "$seatData"
+                        }
+                    }
+                    output {
+                        new {
+                            reference = "accidentType"
+                        }
+                    }
+                    done {
+                        new {
+                            name = "classification"
+                            channel = "internal"
+                        }
+                    }
+                }
+            }
+            `else` = sDetect.name
+        }
+        new {
+            event = "classification"
+            actions {
+                new CSM.MatchActionDescription{
+                    value = "accidentType"
+                    cases {
+                        new{
+                            `case` = "normal"
+                            action = new CSM.RaiseActionDescription {
+                                event {
+                                    name = eDetectNormal
+                                    channel = "internal"
+                                }
+                            }
+                        }
+                        new{
+                            `case` = "sensorFault"
+                            action = new CSM.RaiseActionDescription {
+                                event {
+                                    name = eSensorFault
+                                    channel = "global"
+                                }
+                            }
+                        }
+                        new {
+                            `case` = "frontImpact"
+                            action = new CSM.RaiseActionDescription {
+                                event {
+                                    name = eFrontImpact
+                                    channel = "global"
+                                }
+                            }
+                        }
+                        new {
+                            `case` = "sideImpact"
+                            action = new CSM.RaiseActionDescription {
+                                event {
+                                    name = eSideImpact
+                                    channel = "global"
+                                }
+                            }
+                        }
+                        new {
+                            `case` = "rearImpact"
+                            action = new CSM.RaiseActionDescription {
+                                event {
+                                    name = eRearImpact
+                                    channel = "global"
+                                }
+                            }
+                        }
+                        new {
+                            `case` = "rollover"
+                            action = new CSM.RaiseActionDescription {
+                                event {
+                                    name = eRollover
+                                    channel = "global"
+                                }
+                            }
+                        }
+                        new {
+                            `case` = "multiImpact"
+                            action = new CSM.RaiseActionDescription {
+                                event {
+                                    name = eMultiImpact
+                                    channel = "global"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+local sensorDiagnosisSM : CSM.StateMachineDescription = new {
+    // record, and notify state
+    name = "sensorDiagnosis"
+    states {
+        sSensorRecording
+        sSensorNotify
+    }
+}
+
+local sSensorRecording : CSM.StateDescription = new {
+    name = "sensorRecording"
+    initial = true
+    on {
+        new {
+            event = eSensorFault
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stSensorDiagnosis
+                }
+            }
+            target = sSensorNotify.name
+        }
+    }
+
+}
+
+local sSensorNotify : CSM.StateDescription = new {
+    name = "sensorNotify"
+    entry {
+        new CSM.InvokeActionDescription {
+            serviceType = stSensorNotify
+            done {
+                new {
+                    name = eVehicleControlHandle
+                    channel = "global"
+                }
+                new {
+                    name = "sensor"
+                    channel = "internal"
+                }
+            }
+        }
+    }
+     on {
+        new {
+            event = "sensor"
+            target = sSensorRecording.name
+        }
+    }
+
+}
+
+local passnegerCountSM : CSM.StateMachineDescription = new {
+    //count, record, and notify  state
+    name = "passnegerCount"
+    states {
+        sCount
+        sPassnegerNotify
+    }
+}
+
+local sCount : CSM.StateDescription = new {
+    name = "count"
+    initial = true
+    on {
+         new {
+            event = eFrontImpact
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stPassengerCount
+                }
+            }
+        }
+        new {
+            event = eSideImpact
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stPassengerCount
+                }
+            }
+        }
+        new {
+            event = eRearImpact
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stPassengerCount
+                }
+            }
+        }
+        new {
+            event = eRollover
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stPassengerCount
+                }
+            }
+        }
+        new {
+            event = eMultiImpact
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stPassengerCount
+                }
+            }
+        }
+    }
+    always {
+        new {
+            target = sPassnegerNotify.name
+        }
+    }
+}
+
+local sPassnegerNotify : CSM.StateDescription = new {
+    name = "passnegerNotify"
+    entry {
+        new CSM.InvokeActionDescription {
+            serviceType = stSensorNotify
+            done {
+                new {
+                    name = eEmergencyHandled
+                    channel = "global"
+                }
+                new {
+                    name = "passanger"
+                    channel = "internal"
+                }
+            }
+        }
+    }
+    on {
+        new {
+            event = "passanger"
+            target = sCount.name
+        }
+    }
+}
+
+local doorControlSM : CSM.StateMachineDescription = new {
+    //record state
+    name = "doorControl"
+    states {
+        sdoorControl
+    }
+}
+
+local sdoorControl : CSM.StateDescription = new {
+    name = "doorControl"
+    initial = true
+    on {
+        new {
+            event = eFrontImpact
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stDoorUnlock
+                }
+            }
+        }
+        new {
+            event = eSideImpact
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stDoorUnlock
+                }
+            }
+        }
+        new {
+            event = eRearImpact
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stDoorUnlock
+                }
+            }
+        }
+        new {
+            event = eRollover
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stDoorUnlock
+                }
+            }
+        }
+        new {
+            event = eMultiImpact
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stDoorUnlock
+                }
+            }
+        }
+    }
+    always {
+        new {
+            target = sdoorControl.name
+        }
+    }
+}
+
+local powerControlSM : CSM.StateMachineDescription = new {
+       //record state
+    name = "powerControl"
+    states {
+        sPowerControl
+    }
+}
+
+local sPowerControl : CSM.StateDescription = new {
+    name = "powerControl"
+    initial = true
+    on {
+        new {
+            event = eFrontImpact
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stPowerCutoff
+                }
+            }
+        }
+        new {
+            event = eSideImpact
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stPowerCutoff
+                }
+            }
+        }
+        new {
+            event = eRearImpact
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stPowerCutoff
+                }
+            }
+        }
+        new {
+            event = eRollover
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stPowerCutoff
+                }
+            }
+        }
+        new {
+            event = eMultiImpact
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stPowerCutoff
+                }
+            }
+        }
+    }
+    always {
+        new {
+            target = sPowerControl.name
+        }
+    }
+}
+
+// ------------------------ Cloud SM -------------------------------
+local cloudSM: CSM.StateMachineDescription = new {
+    name = "cloud"
+    localContext {
+        variables {
+            new {
+                name = vHasThreat
+                value = "false"
+            }
+        }
+    }
+    states {
+        sCloudAnalysis
+        sCloudAlarm
+    }
+}
+
+local sCloudAnalysis: CSM.StateDescription = new {
+    name = "cloudAnalysis"
+    initial = true
+    on {
+        new {
+            event = eFrontImpact
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stCloudAnalysis
+                    input {
+                        new {
+                            name = "pressureData"
+                            value = "$pressureData"
+                        }
+
+                    }
+                    output {
+                        new {
+                            reference = "hasThreat"
+                        }
+                    }
+                }
+            }
+            target = sCloudAlarm.name
+        }
+    }
+}
+
+local sCloudAlarm: CSM.StateDescription = new {
+    name = "cloudAlarm"
+    entry {
+        new CSM.InvokeActionDescription {
+           serviceType = stCloudNotify
+            done {
+                new {
+                    name = "cloud"
+                    channel = "internal"
+                }
+            }
+        }
+
+    }
+    on {
+        new {
+            event = "cloud"
+            target = sCloudAnalysis.name
+        }
+    }
+}
+
+// ------------------------ department SM -------------------------------
+local departmentSM: CSM.StateMachineDescription = new {
+    name = "department"
+    states {
+        sDepartmentHandle
+    }
+}
+
+local sDepartmentHandle: CSM.StateDescription = new {
+    name = "departmentHandle"
+    initial = true
+    on {
+        new {
+            event = eEmergencyHandled
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stDepartmentHandle
+                }
+            }
+        }
+    }
+}
+
+// ------------------------ vehicleControl SM -------------------------------
+local vehicleControlSM: CSM.StateMachineDescription = new {
+    name = "vehicleControl"
+    states {
+        sVehicleControlHandle
+    }
+}
+
+local sVehicleControlHandle: CSM.StateDescription = new {
+    name = "vehicleControlHandle"
+    initial = true
+    on {
+        new {
+            event = eVehicleControlHandle
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stVehicleControlHandle
+                }
+            }
+        }
+    }
+}
