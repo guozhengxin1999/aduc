@@ -73,6 +73,8 @@ local eSensorTimeout = "sensorTimeout"
 local eFalseAlarm = "falseAlarm"
 
 // ===== varibales =====
+local vMotionScore = "motionScore"
+local vRolloverAngle = "rolloverAngle"
 local vCrashConfidence = "crashConfidence"
 local vOccupantCount = "occupantCount"
 local vVehicleLocation = "vehicleLocation"
@@ -92,7 +94,6 @@ local temperatureContextVariableDescription: CSM.ContextVariableDescription = ne
     name = "temperatureData"
     value = "temperatureData"
 }
-
 local airbagContextVariableDescription: CSM.ContextVariableDescription = new {
     name = "airbagData"
     value = "airbagData"
@@ -105,7 +106,6 @@ local seatContextVariableDescription: CSM.ContextVariableDescription = new {
     name = "seatData"
     value = "seatData"
 }
-
 
 // ===== camera SM  =====
 local VideoSM: CSM.StateMachineDescription = new {
@@ -621,83 +621,213 @@ local sAssessDamage: CSM.StateDescription = new {
     }
 }
 
-// ===== 传感器融合状态机（核心逻辑）=====
+// ===== 增强版传感器融合状态机 =====
 local SensorFusionSM: CSM.StateMachineDescription = new {
-    name = "sensorFusionCore"
+    name = "fusion"
+    localContext {
+        variables {
+            new {
+                name = vMotionScore
+            }
+        }
+    }
     states {
-        sDataAggregation    // 数据聚合
-        sCrashVerification  // 碰撞验证
-        sFireVerification   // 火灾验证
-        sRescuePreparation  // 救援准备
+        sCollectAlerts
+        sClassifyAccident
+        sExecuteRescue
+        sHandleSensorError
     }
-
-    local sDataAggregation: CSM.StateDescription = new {
-        name = "aggregate"
-        initial = true
-        on {
-            // 碰撞验证条件：视频警报+音频特征+气囊激活
-            new {
-                event = eVideoMotionAlert
-                guards {
-                    new CSM.GuardDescription {
-                        expression = "exists(eAudioCrashSig) && exists(eAirbagActivated)"
-                    }
+}
+local sCollectAlerts: CSM.StateDescription = new {
+    name = "collect"
+    initial = true
+    on {
+        // 碰撞事故：视频+音频+气囊+车门损坏
+        new {
+            event = eVideoMotion
+            guards {
+                new CSM.GuardDescription {
+                    expression = "exists(eAudioCollision) && exists(eAirbagDeployed) && $DoorSM.doorDamaged == true"
                 }
-                actions {
-                    new CSM.RaiseActionDescription {
-                        event { name = eAccidentConfirmed, channel = "global", data = "'collision'" }
-                    }
-                }
-                target = sCrashVerification.name
-            },
-            // 火灾验证条件：高温警报+车门状态
-            new {
-                event = eThermalCritical
-                guards {
-                    new CSM.GuardDescription {
-                        expression = "$vAmbientTemp > 200 && $vDoorStatus != 'open'"
-                    }
-                }
-                actions {
-                    new CSM.RaiseActionDescription {
-                        event { name = eAccidentConfirmed, channel = "global", data = "'fire'" }
-                    }
-                }
-                target = sFireVerification.name
             }
+            actions {
+                new CSM.RaiseActionDescription {
+                    event {
+                        name = "eCrashConfirmed"
+                        channel = "internal"
+                    }
+                }
+            }
+            target = sClassifyAccident.name
+        }
+        // 侧翻事故：加速度异常+视频姿态检测
+        new {
+            event = eRolloverDetected
+            guards {
+                new CSM.GuardDescription {
+                    expression = "$VideoSM.motionScore > 0.7 && $vRolloverAngle > 60"
+                }
+            }
+            actions {
+                new CSM.RaiseActionDescription {
+                    event {
+                        name = "eRolloverConfirmed"
+                        channel = "internal"
+                    }
+                }
+            }
+            target = sClassifyAccident.name
+        }
+        // 火灾事故：高温+烟雾检测（需视频分析）
+        new {
+            event = eThermalCritical
+            guards {
+                new CSM.GuardDescription {
+                    expression = "$VideoSM.smokeDetected == true"
+                }
+            }
+            actions {
+                new CSM.RaiseActionDescription {
+                    event {
+                        name = "eFireConfirmed"
+                        channel = "internal"
+                    }
+                }
+            }
+            target = sClassifyAccident.name
+        }
+        // 传感器降级处理
+        new {
+            event = eSensorDegraded
+            target = sHandleSensorError.name
         }
     }
+}
 
-    local sCrashVerification: CSM.StateDescription = new {
-        name = "verifyCrash"
+local sClassifyAccident: CSM.StateDescription = new {
+        name = "classify"
         entry {
-            new CSM.InvokeActionDescription {
-                serviceType = stMultiSensorFusion
-                input {
-                    new { name = "videoScore", value = "$VideoSM.motionScore" }
-                    new { name = "audioProb", value = "$AudioSM.crashProbability" }
-                }
-                output { new { reference = vCrashConfidence } }
+            new CSM.MatchActionDescription {
+                value = ""
+                cases {
+                    // 碰撞场景：解锁车门+请求医疗救援
+                    new {
+                        `case` = "$lastEvent == 'eCrashConfirmed'"
+                        action = new CSM.RaiseActionDescription{
+                            event {
+                                name = eDoorsUnlocked
+                                channel = "global"
+                            }
+
+                        }
+
+                            new CSM.InvokeActionDescription {
+                                serviceType = "stUnlockAllDoors"
+                            }
+                            new CSM.InvokeActionDescription {
+                                serviceType = "stRequestAmbulance"
+                                input {
+                                    new { name = "occupants" value = "$vOccupantCount" }
+                                }
+                            }
+
+                        // 侧翻场景：解锁应急出口+调整气囊策略
+                        new {
+                            condition = "$lastEvent == 'eRolloverConfirmed'"
+                            actions {
+                                new CSM.InvokeActionDescription {
+                                    serviceType = stUnlockEmergencyExit
+                                    done { event = eEmergencyExitUnlocked }
+                                }
+                                new CSM.InvokeActionDescription {
+                                    serviceType = "stAdjustAirbagPressure"
+                                }
+                            }
+                        }
+                        // 火灾场景：切断空调+启动灭火
+                        new {
+                            condition = "$lastEvent == 'eFireConfirmed'"
+                            actions {
+                                new CSM.InvokeActionDescription {
+                                    serviceType = stActivateAirCutoff
+                                }
+                                new CSM.InvokeActionDescription {
+                                    serviceType = "stReleaseFireSuppressant"
+                                }
+                            }
+                        }
+                    }
             }
         }
+}
         on {
             new {
-                event = "eVerificationComplete"
-                guards { new CSM.GuardDescription { expression = "$vCrashConfidence > 0.9" } }
-                target = sRescuePreparation.name
+                event = "eRescueReady"
+                target = sExecuteRescue.name
+            }
+        }
+
+
+local sExecuteRescue: CSM.StateDescription = new {
+        name = "executeRescue"
+        entry {
+            new CSM.ParallelActionDescription {
+                actions = [
+                    // 发送救援信号
+                    new CSM.InvokeActionDescription {
+                        serviceType = "stSendDistressSignal"
+                        input {
+                            new { name = "type", value = "$lastEvent" }
+                            new { name = "GPS", value = "$vVehicleLocation" }
+                        }
+                    },
+                    // 车内语音指导
+                    new CSM.InvokeActionDescription {
+                        serviceType = "stPlayEmergencyGuidance"
+                        input {
+                            new { name = "accidentType", value = "$lastEvent" }
+                        }
+                    }
+                ]
             }
         }
     }
 
-    local sRescuePreparation: CSM.StateDescription = new {
-        name = "prepareRescue"
+    local sHandleSensorError: CSM.StateDescription = new {
+        name = "handleError"
         entry {
-            new CSM.RaiseActionDescription {
-                event { name = eEmergencyTrigger, channel = "global" }
+            new CSM.SwitchActionDescription {
+                cases = [
+                    // 摄像头故障：切换红外传感器
+                    new {
+                        condition = "$failedSensor == 'camera'"
+                        actions = [
+                            new CSM.InvokeActionDescription {
+                                serviceType = "stSwitchToIRCamera"
+                            }
+                        ]
+                    },
+                    // 温度传感器故障：启用备用热电偶
+                    new {
+                        condition = "$failedSensor == 'temperature'"
+                        actions = [
+                            new CSM.InvokeActionDescription {
+                                serviceType = "stActivateBackupThermocouple"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+        on {
+            new {
+                event = "eSensorRecovered"
+                target = sCollectAlerts.name
             }
         }
     }
 }
+
 
 // ===== 救援协调状态机 =====
 local RescueCoordinatorSM: CSM.StateMachineDescription = new {
@@ -837,197 +967,6 @@ local EmergencyOpsSM: CSM.StateMachineDescription = new {
 
 
 
-// ===== 增强版传感器融合状态机 =====
-local SensorFusionSM: CSM.StateMachineDescription = new {
-    name = "fusion"
-    states {
-        sCollectAlerts
-        sClassifyAccident
-        sExecuteRescue
-        sHandleSensorError
-    }
-
-    local sCollectAlerts: CSM.StateDescription = new {
-        name = "collect"
-        initial = true
-        on {
-            // 碰撞事故：视频+音频+气囊+车门损坏
-            new {
-                event = eVideoMotion
-                guards {
-                    new CSM.GuardDescription {
-                        expression = "exists(eAudioCollision) && exists(eAirbagDeployed) && $DoorSM.doorDamaged == true"
-                    }
-                }
-                actions {
-                    new CSM.RaiseActionDescription {
-                        event {
-                            name = "eCrashConfirmed"
-                            channel = "internal"
-                        }
-                    }
-                }
-                target = sClassifyAccident.name
-            }
-            // 侧翻事故：加速度异常+视频姿态检测
-            new {
-                event = eRolloverDetected
-                guards {
-                    new CSM.GuardDescription {
-                        expression = "$VideoSM.motionScore > 0.7 && $vRolloverAngle > 60"
-                    }
-                }
-                actions {
-                    new CSM.RaiseActionDescription {
-                        event {
-                            name = "eRolloverConfirmed"
-                            channel = "internal"
-                        }
-                    }
-                }
-                target = sClassifyAccident.name
-            },
-            // 火灾事故：高温+烟雾检测（需视频分析）
-            new {
-                event = eTempCritical
-                guards {
-                    new CSM.GuardDescription {
-                        expression = "$VideoSM.smokeDetected == true"
-                    }
-                }
-                actions {
-                    new CSM.RaiseActionDescription {
-                        event {
-                            name = "eFireConfirmed"
-                            channel = "internal"
-                        }
-                    }
-                }
-                target = sClassifyAccident.name
-            },
-            // 传感器降级处理
-            new {
-                event = eSensorDegraded
-                target = sHandleSensorError.name
-            }
-        }
-    }
-
-    local sClassifyAccident: CSM.StateDescription = new {
-        name = "classify"
-        entry {
-            new CSM.SwitchActionDescription {
-                cases = [
-                    // 碰撞场景：解锁车门+请求医疗救援
-                    new {
-                        condition = "$lastEvent == 'eCrashConfirmed'"
-                        actions = [
-                            new CSM.InvokeActionDescription {
-                                serviceType = "stUnlockAllDoors"
-                            },
-                            new CSM.InvokeActionDescription {
-                                serviceType = "stRequestAmbulance"
-                                input {
-                                    new { name = "occupants", value = "$vOccupantCount" }
-                                }
-                            }
-                        ]
-                    },
-                    // 侧翻场景：解锁应急出口+调整气囊策略
-                    new {
-                        condition = "$lastEvent == 'eRolloverConfirmed'"
-                        actions = [
-                            new CSM.InvokeActionDescription {
-                                serviceType = stUnlockEmergencyExit
-                                done { event = eEmergencyExitUnlocked }
-                            },
-                            new CSM.InvokeActionDescription {
-                                serviceType = "stAdjustAirbagPressure"
-                            }
-                        ]
-                    },
-                    // 火灾场景：切断空调+启动灭火
-                    new {
-                        condition = "$lastEvent == 'eFireConfirmed'"
-                        actions = [
-                            new CSM.InvokeActionDescription {
-                                serviceType = stActivateAirCutoff
-                            },
-                            new CSM.InvokeActionDescription {
-                                serviceType = "stReleaseFireSuppressant"
-                            }
-                        ]
-                    }
-                ]
-            }
-        }
-        on {
-            new {
-                event = "eRescueReady"
-                target = sExecuteRescue.name
-            }
-        }
-    }
-
-    local sExecuteRescue: CSM.StateDescription = new {
-        name = "executeRescue"
-        entry {
-            new CSM.ParallelActionDescription {
-                actions = [
-                    // 发送救援信号
-                    new CSM.InvokeActionDescription {
-                        serviceType = "stSendDistressSignal"
-                        input {
-                            new { name = "type", value = "$lastEvent" }
-                            new { name = "GPS", value = "$vVehicleLocation" }
-                        }
-                    },
-                    // 车内语音指导
-                    new CSM.InvokeActionDescription {
-                        serviceType = "stPlayEmergencyGuidance"
-                        input {
-                            new { name = "accidentType", value = "$lastEvent" }
-                        }
-                    }
-                ]
-            }
-        }
-    }
-
-    local sHandleSensorError: CSM.StateDescription = new {
-        name = "handleError"
-        entry {
-            new CSM.SwitchActionDescription {
-                cases = [
-                    // 摄像头故障：切换红外传感器
-                    new {
-                        condition = "$failedSensor == 'camera'"
-                        actions = [
-                            new CSM.InvokeActionDescription {
-                                serviceType = "stSwitchToIRCamera"
-                            }
-                        ]
-                    },
-                    // 温度传感器故障：启用备用热电偶
-                    new {
-                        condition = "$failedSensor == 'temperature'"
-                        actions = [
-                            new CSM.InvokeActionDescription {
-                                serviceType = "stActivateBackupThermocouple"
-                            }
-                        ]
-                    }
-                ]
-            }
-        }
-        on {
-            new {
-                event = "eSensorRecovered"
-                target = sCollectAlerts.name
-            }
-        }
-    }
-}
 
 
 
