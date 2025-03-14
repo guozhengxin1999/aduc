@@ -23,7 +23,7 @@ stateMachines {
 // video st
 local stProcessVideo = "processVideo"
 local stVideoDetectAngle = "videoDetectAngle"
-local stVideoDetectSmoke = "videoDetectSmok"
+local stVideoDetectSmoke = "videoDetectSmoke"
 local stVideoDetectCollision = "videoDetectCollision"
 local stVideoDetectPassenger = "videoDetectPassenger"
 // audio st

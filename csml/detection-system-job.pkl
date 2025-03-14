@@ -27,13 +27,13 @@ serviceImplementations {
     }
 
   new HttpServiceImplementationDescription {
-        name = "videoDetectSmok"
+        name = "videoDetectSmoke"
         cost = 1.0
         `local` = true
         scheme = "http"
         host = "localhost"
         port = 8002
-        endPoint = "/videoDetectSmok"
+        endPoint = "/videoDetectSmoke"
         method = "POST"
     }
   new HttpServiceImplementationDescription {
