@@ -6,149 +6,159 @@ import "https://raw.githubusercontent.com/guozhengxin1999/aduc/refs/heads/versio
 serviceImplementations {
 
     new HttpServiceImplementationDescription {
-        name = "preprocess"
+        name = "processVideo"
         cost = 1.0
         `local` = false
         scheme = "http"
         host = "localhost"
         port = 8001
-        endPoint = "/preprocess"
+        endPoint = "/preprocessVideo"
         method = "POST"
     }
    new HttpServiceImplementationDescription {
-        name = "airbagCheck"
-        cost = 1.0
-        `local` = false
-        scheme = "http"
-        host = "localhost"
-        port = 8001
-        endPoint = "/airbagCheck"
-        method = "POST"
-    }
-
-  new HttpServiceImplementationDescription {
-        name = "doorCheck"
-        cost = 1.0
-        `local` = false
-        scheme = "http"
-        host = "localhost"
-        port = 8001
-        endPoint = "/doorCheck"
-        method = "POST"
-    }
-  new HttpServiceImplementationDescription {
-        name = "seatCheck"
-        cost = 1.0
-        `local` = false
-        scheme = "http"
-        host = "localhost"
-        port = 8001
-        endPoint = "/seatCheck"
-        method = "POST"
-    }
-
-    new HttpServiceImplementationDescription {
-        name = "detect"
+        name = "videoDetectAngle"
         cost = 1.0
         `local` = true
         scheme = "http"
         host = "localhost"
         port = 8002
-        endPoint = "/detect"
+        endPoint = "/videoDetectAngle"
         method = "POST"
     }
-    new HttpServiceImplementationDescription {
-        name = "sensorDiagnosis"
+
+  new HttpServiceImplementationDescription {
+        name = "videoDetectSmok"
         cost = 1.0
         `local` = true
         scheme = "http"
         host = "localhost"
         port = 8002
-        endPoint = "/sensorDiagnosis"
+        endPoint = "/videoDetectSmok"
+        method = "POST"
+    }
+  new HttpServiceImplementationDescription {
+        name = "videoDetectCollision"
+        cost = 1.0
+        `local` = true
+        scheme = "http"
+        host = "localhost"
+        port = 8002
+        endPoint = "/videoDetectCollision"
+        method = "POST"
+    }
+
+    new HttpServiceImplementationDescription {
+        name = "videoDetectPassenger"
+        cost = 1.0
+        `local` = true
+        scheme = "http"
+        host = "localhost"
+        port = 8002
+        endPoint = "/videoDetectPassenger"
+        method = "POST"
+    }
+    new HttpServiceImplementationDescription {
+        name = "processAudio"
+        cost = 1.0
+        `local` = false
+        scheme = "http"
+        host = "localhost"
+        port = 8001
+        endPoint = "/processAudio"
         method = "POST"
      }
    new HttpServiceImplementationDescription {
-        name = "sensorNotify"
+        name = "audioDetectCollision"
         cost = 1.0
         `local` = true
         scheme = "http"
         host = "localhost"
         port = 8002
-        endPoint = "/sensorNotify"
+        endPoint = "/audioDetectCollision"
         method = "POST"
      }
 
   new HttpServiceImplementationDescription {
-        name = "passengerCount"
+        name = "audioDetectPassenger"
         cost = 1.0
         `local` = true
         scheme = "http"
         host = "localhost"
         port = 8002
-        endPoint = "/passengerCount"
+        endPoint = "/audioDetectPassenger"
         method = "POST"
      }
     new HttpServiceImplementationDescription {
-        name = "doorUnlock"
+        name = "fireDepartment"
         cost = 1.0
-        `local` = true
+        `local` = false
         scheme = "http"
         host = "localhost"
-        port = 8002
-        endPoint = "/doorUnlock"
+        port = 8003
+        endPoint = "/fireDepartment"
         method = "POST"
      }
 
     new HttpServiceImplementationDescription {
-        name = "powerCutoff"
+        name = "hospitalDepartment"
         cost = 1.0
-        `local` = true
+        `local` = false
         scheme = "http"
         host = "localhost"
-        port = 8002
-        endPoint = "/powerCutoff"
+        port = 8003
+        endPoint = "/hospitalDepartment"
         method = "POST"
      }
 
  new HttpServiceImplementationDescription {
-        name = "vehicleControlHandle"
+        name = "police"
         cost = 1.0
-        `local` = true
+        `local` = false
         scheme = "http"
         host = "localhost"
         port = 8003
-        endPoint = "/vehicleControlHandle"
+        endPoint = "/police"
         method = "POST"
      }
    new HttpServiceImplementationDescription {
-        name = "departmentHandle"
+        name = "vToVCommunication"
         cost = 1.0
-        `local` = true
+        `local` = false
         scheme = "http"
         host = "localhost"
         port = 8003
-        endPoint = "/departmentHandle"
+        endPoint = "/vToVCommunication"
         method = "POST"
      }
 
   new HttpServiceImplementationDescription {
-        name = "cloudAnalysis"
+        name = "unlockDoors"
         cost = 1.0
         `local` = false
         scheme = "http"
         host = "localhost"
-        port = 8003
-        endPoint = "/analysis"
+        port = 8001
+        endPoint = "/unlockDoors"
         method = "POST"
     }
      new HttpServiceImplementationDescription {
-        name = "cloudNotify"
+        name = "disconnectPower"
         cost = 1.0
         `local` = false
         scheme = "http"
         host = "localhost"
-        port = 8003
-        endPoint = "/cloudNotify"
+        port = 8001
+        endPoint = "/disconnectPower"
+        method = "POST"
+    }
+   new HttpServiceImplementationDescription {
+        name = "guidanceRescue"
+        cost = 1.0
+        `local` = false
+        scheme = "http"
+        host = "localhost"
+        port = 8001
+        endPoint = "/guidanceRescue"
         method = "POST"
     }
 
