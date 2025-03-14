@@ -7,10 +7,10 @@ version = "2.0"
 stateMachines {
     VideoSM
     AudioSM
-    TemperatureSM
-    SeatSM
-    AirbagSM
-    DoorSM
+//     TemperatureSM
+//     SeatSM
+//     AirbagSM
+//     DoorSM
     SensorFusionSM
 
     rescueCoordinatorSM
@@ -18,15 +18,18 @@ stateMachines {
     emergencyOpsSM
 }
 
+
 // ------ service Type ------
 // video st
-local stCaptureVideo = "captureVideo"
 local stProcessVideo = "processVideo"
-
+local stVideoDetectAngle = "videoDetectAngle"
+local stVideoDetectSmoke = "videoDetectSmok"
+local stVideoDetectCollision = "videoDetectCollision"
+local stVideoDetectPassenger = "videoDetectPassenger"
 // audio st
-local stRecordAudio = "audioAudio"
-local stAnalyzeAudio = "analyzeAudio"
-
+local stProcessAudio = "processAudio"
+local stAudioDetectCollision = "audioDetectCollision"
+local stAudioDetectPassenger = "audioDetectPassenger"
 //temperature st
 local stReadTemperature = "readTemperature"
 local stAnalyzeTemperature = "analyzeTemperature"
@@ -43,17 +46,41 @@ local stDetectAirbag = "detectAirbag"
 local stReadDoor = "readDoor"
 local stMonitorDoors = "monitorDoors"
 
-local stFuseData = "fuseSensorData"
 
-local stAssessOccupants = "assessOccupants"
+// department
+local stFireDepartment = "fireDepartment"
+local stHospitalDepartment = "hospitalDepartment"
+local stPolice = "police"
+
+// vtov
+local stVToVCommunication = "vToVCommunication"
 local stUnlockDoors = "unlockDoors"
-local stCutFuelLine = "cutFuelLine"
-local stVerifySensor = "verifySensor"
+local stDisconnectPower = "disconnectPower"
+local stGuidanceRescue = "guidanceRescue"
 
 // ===== Event =====
-
-local eVideoMotion = "videoMotion"
+// ----- video -----
+local eVideoAngle = "videoAngle"
+local eVADetectAbnormal = "vADetectAbnormal"
+local eVideoSmoke = "videoSmoke"
+local eVSDetectAbnormal = "vSDetectAbnormal"
+local eVideoCollision = "videoCollision"
+local eVCDetectAbnormal = "vCDetectAbnormal"
+local eVideoPassenger = "videoPassenger"
+local eVPDetectAbnormal = "vPDetectAbnormal"
+// ----- audio -----
 local eAudioCollision = "audioCollision"
+local eACDetectAbnormal = "aCDetectAbnormal"
+local eAudioPassenger = "audioPassenger"
+local eAPDetectAbnormal = "aPDetectAbnormal"
+
+
+// ----- accident catagories -----
+local eFireDetected = "fireDetected"
+local eCollisionConfirmed = "collisionConfirmed"
+local eRolloverRisk = "rolloverRisk"
+local eOccupancyInjured = "occupancyInjured"
+
 local eThermalCritical = "thermalCritical"
 local eSeatOccupancy = "seatOccupancy"
 local eAirbagActivated = "airbagActivated"
@@ -73,7 +100,17 @@ local eSensorTimeout = "sensorTimeout"
 local eFalseAlarm = "falseAlarm"
 
 // ===== varibales =====
-local vMotionScore = "motionScore"
+// ----- video -----
+local vVideoAngle = "videoAngle"
+local vVideoSmoke = "videoSmoke"
+local vVideoCollision = "videoCollision"
+local vVideoPassenger = "videoPassenger"
+// ----- audio -----
+local vAudioCollision = "audioCollision"
+local vAudioPassenger = "audioPassenger"
+// ----- temperature -----
+
+
 local vRolloverAngle = "rolloverAngle"
 local vCrashConfidence = "crashConfidence"
 local vOccupantCount = "occupantCount"
@@ -86,9 +123,17 @@ local videoContextVariableDescription: CSM.ContextVariableDescription = new {
     name = "videoData"
     value = "videoData"
 }
+local videoPassengerContextVariableDescription: CSM.ContextVariableDescription = new {
+    name = "videoPassenger"
+    value = "videoPassengerData"
+}
 local audioContextVariableDescription: CSM.ContextVariableDescription = new {
     name = "audioData"
     value = "audioData"
+}
+local audioPassengerContextVariableDescription: CSM.ContextVariableDescription = new {
+    name = "audioPassenger"
+    value = "audioPassengerData"
 }
 local temperatureContextVariableDescription: CSM.ContextVariableDescription = new {
     name = "temperatureData"
@@ -117,24 +162,38 @@ local VideoSM: CSM.StateMachineDescription = new {
                 value = "''"
             }
             new {
-                name = "motionScore"
-                value = "0.0"
+                name = "videoAngle"
+                value = "false"
+            }
+            new {
+                name =  "videoSmoke"
+                value = "false"
+            }
+            new {
+                name = "videoCollision"
+                value = "false"
+            }
+            new {
+                name = "videoPassenger"
+                value = "0"
             }
         }
     }
     states {
-        sCapture
-        sAnalyzeMotion
-        sErrorRecovery
+        sReadVideo
+        sVideoDetectAngle
+        sVideoDetectSmoke
+        sVideoDetectCollison
+        sVideoDetectPassenger
     }
 }
 
-local sCapture: CSM.StateDescription = new {
-    name = "capture"
+local sReadVideo: CSM.StateDescription = new {
+    name = "readVideo"
     initial = true
     entry {
         new CSM.InvokeActionDescription {
-            serviceType = stCaptureVideo
+            serviceType = stProcessVideo
             input {
                 new {
                     name = "fileNumber"
@@ -148,7 +207,19 @@ local sCapture: CSM.StateDescription = new {
             }
             done {
                 new {
-                    name = "eVideoCaptured"
+                    name = "eVideoDetectAngle"
+                    channel = "internal"
+                }
+                new {
+                    name = "eVideoDetectSmoke"
+                    channel = "internal"
+                }
+                new {
+                    name = "eVideoDetectCollision"
+                    channel = "internal"
+                }
+                new {
+                    name = "eVideoDetectPassenger"
                     channel = "internal"
                 }
             }
@@ -156,61 +227,46 @@ local sCapture: CSM.StateDescription = new {
     }
     on {
         new {
-            event = "eVideoCaptured"
-            target = sAnalyzeMotion.name
+            event = "eVideoDetectAngle"
+            target = sVideoDetectAngle.name
         }
         new {
-            event = "eSensorTimeout"
-            target = sErrorRecovery.name
+            event = "eVideoDetectSmoke"
+            target = sVideoDetectSmoke.name
+        }
+        new {
+            event = "eVideoDetectCollision"
+            target = sVideoDetectCollison.name
+        }
+        new {
+            event = "eVideoDetectPassenger"
+            target = sVideoDetectPassenger.name
         }
     }
 }
 
-local sAnalyzeMotion: CSM.StateDescription = new {
-    name = "analyzeMotion"
+local sVideoDetectAngle: CSM.StateDescription = new {
+    name = "videoDetectAngle"
     entry {
         new CSM.InvokeActionDescription {
-            serviceType = stProcessVideo
+            serviceType = stVideoDetectAngle
             input {
                 videoContextVariableDescription
             }
             output {
                 new {
-                    reference = "motionScore"
+                    reference = "videoAngle"
                 }
             }
             done {
                 new {
-                    name = eVideoMotion
-                    channel = "global"
+                    name = eVideoAngle
+                    channel = "internal"
                 }
-                //                     new {
-                //                         name = "recycle"
-                //                         channel = "internal"
-                //                     }
-            }
-        }
-    }
-    //         on {
-    //             new {
-    //                 event = "recycle"
-    //                 guards {
-    //                     new CSM.GuardDescription {
-    //                         expression = "$motionScore > 0.8"
-    //                     }
-    //                 }
-    //                 target = sCapture.name
-    //             }
-    //         }
-}
 
-local sErrorRecovery: CSM.StateDescription = new {
-    name = "errorRecovery"
-    entry {
-        new CSM.InvokeActionDescription {
-            done {
+                // trigger prepocess state ,but not realize now
                 new {
-                    name = "eCameraReset"
+                    name = "videoPreprocess"
                     channel = "internal"
                 }
             }
@@ -218,8 +274,173 @@ local sErrorRecovery: CSM.StateDescription = new {
     }
     on {
         new {
-            event = "eCameraReset"
-            target = sCapture.name
+            event = eVideoAngle
+            guards {
+                new CSM.GuardDescription {
+                    expression = "\(vVideoAngle) == true"
+                }
+            }
+            actions {
+                new CSM.RaiseActionDescription {
+                    event {
+                        name = eVADetectAbnormal
+                        channel = "global"
+//                         data {
+//                            vVideoAngle
+//                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+local sVideoDetectSmoke: CSM.StateDescription = new {
+    name = "videoDetectSmoke"
+    entry {
+        new CSM.InvokeActionDescription {
+            serviceType = stVideoDetectSmoke
+            input {
+                videoContextVariableDescription
+            }
+            output {
+                new {
+                    reference = "videoSmoke"
+                }
+            }
+            done {
+                new {
+                    name = eVideoSmoke
+                    channel = "internal"
+                }
+
+                // trigger prepocess state ,but not realize now
+                new {
+                    name = "videoPreprocess"
+                    channel = "internal"
+                }
+            }
+        }
+    }
+    on {
+        new {
+            event = eVideoSmoke
+            guards {
+                new CSM.GuardDescription {
+                    expression = "\(vVideoSmoke) == true"
+                }
+            }
+            actions {
+                new CSM.RaiseActionDescription {
+                    event {
+                        name = eVSDetectAbnormal
+                        channel = "global"
+                        //                         data {
+                        //                             don't have data now
+                        //                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+local sVideoDetectCollison: CSM.StateDescription = new {
+    name = "videoDetectCollison"
+    entry {
+        new CSM.InvokeActionDescription {
+            serviceType = stVideoDetectCollision
+            input {
+                videoContextVariableDescription
+            }
+            output {
+                new {
+                    reference = "videoCollision"
+                }
+            }
+            done {
+                new {
+                    name = eVideoCollision
+                    channel = "internal"
+                }
+
+                // trigger prepocess state ,but not realize now
+                new {
+                    name = "videoPreprocess"
+                    channel = "internal"
+                }
+            }
+        }
+    }
+    on {
+        new {
+            event = eVideoCollision
+            guards {
+                new CSM.GuardDescription {
+                    expression = "\(vVideoCollision) == true"
+                }
+            }
+            actions {
+                new CSM.RaiseActionDescription {
+                    event {
+                        name = eVCDetectAbnormal
+                        channel = "global"
+                        //                         data {
+                        //                             don't have data now
+                        //                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+local sVideoDetectPassenger: CSM.StateDescription = new {
+    name = "videoDetectPassenger"
+    entry {
+        new CSM.InvokeActionDescription {
+            serviceType = stVideoDetectPassenger
+            input {
+                videoContextVariableDescription
+            }
+            output {
+                new {
+                    reference = "videoPassenger"
+                }
+            }
+            done {
+                new {
+                    name = eVideoPassenger
+                    channel = "internal"
+                }
+
+                // trigger prepocess state ,but not realize now
+                new {
+                    name = "videoPreprocess"
+                    channel = "internal"
+                }
+            }
+        }
+    }
+    on {
+        new {
+            event = eVideoPassenger
+            guards {
+                new CSM.GuardDescription {
+                    expression = "\(vVideoPassenger) != 0"
+                }
+            }
+            actions {
+                new CSM.RaiseActionDescription {
+                    event {
+                        name = eVPDetectAbnormal
+                        channel = "global"
+                        data {
+                           videoPassengerContextVariableDescription
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -234,23 +455,28 @@ local AudioSM: CSM.StateMachineDescription = new {
                 value = "''"
             }
             new {
-                name = "crashProbability"
-                value = "0.0"
+                name = "audioCollision"
+                value = "false"
+            }
+            new {
+                name = "audioPassenger"
+                value = "0"
             }
         }
     }
     states {
-        sRecordAudio
-        sDetectCollision
+        sAudioProcess
+        sAudioDetectCollision
+        sAudioDetectPassenger
     }
 }
 
-local sRecordAudio: CSM.StateDescription = new {
-    name = "record"
+local sAudioProcess: CSM.StateDescription = new {
+    name = "audioProcess"
     initial = true
     entry {
         new CSM.InvokeActionDescription {
-            serviceType = stRecordAudio
+            serviceType = stProcessAudio
             input {
                 new {
                     name = "fileNumber"
@@ -264,7 +490,11 @@ local sRecordAudio: CSM.StateDescription = new {
             }
             done {
                 new {
-                    name = "eAudioDetect"
+                    name = "eAudioDetectCollision"
+                    channel = "internal"
+                }
+                new {
+                    name = "eAudioDetectPassenger"
                     channel = "internal"
                 }
             }
@@ -272,40 +502,102 @@ local sRecordAudio: CSM.StateDescription = new {
     }
     on {
         new {
-            event = "eAudioDetect"
-            target = sDetectCollision.name
+            event = "eAudioDetectCollision"
+            target = sAudioDetectCollision.name
+        }
+        new {
+            event = "eAudioDetectCollision"
+            target = sAudioDetectPassenger.name
         }
     }
 }
 
-local sDetectCollision: CSM.StateDescription = new {
-    name = "collisionDetect"
+local sAudioDetectCollision: CSM.StateDescription = new {
+    name = "audioDetectCollision"
     entry {
         new CSM.InvokeActionDescription {
-            serviceType = stAnalyzeAudio
+            serviceType = stAudioDetectCollision
             input {
                 audioContextVariableDescription
             }
             output {
                 new {
-                    reference = "crashProbability"
+                    reference = "audioCollision"
                 }
             }
             done {
                 new {
                     name = eAudioCollision
-                    channel = "global"
+                    channel = "internal"
                 }
             }
         }
     }
-    //         on {
-    //             new {
-    //                 event = eAudioCrashSig
-    //                 guards { new CSM.GuardDescription { expression = "$crashProbability > 0.8" } }
-    //                 target = sRecordAudio.name
-    //             }
-    //         }
+    on {
+        new {
+            event = eAudioCollision
+            guards {
+                new CSM.GuardDescription {
+                    expression = "\(vAudioCollision) == true"
+                }
+            }
+            actions {
+                 new CSM.RaiseActionDescription {
+                    event {
+                        name = eACDetectAbnormal
+                        channel = "global"
+                        //                         data {
+                        //                             don't have data now
+                        //                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+local sAudioDetectPassenger: CSM.StateDescription = new {
+    name = "audioDetectPassenger"
+    entry {
+        new CSM.InvokeActionDescription {
+            serviceType = stAudioDetectPassenger
+            input {
+                audioContextVariableDescription
+            }
+            output {
+                new {
+                    reference = "audioPassenger"
+                }
+            }
+            done {
+                new {
+                    name = eAudioPassenger
+                    channel = "internal"
+                }
+            }
+        }
+    }
+    on {
+        new {
+            event = eAudioPassenger
+            guards {
+                new CSM.GuardDescription {
+                    expression = "\(vAudioPassenger) != 0"
+                }
+            }
+            actions {
+                 new CSM.RaiseActionDescription {
+                    event {
+                        name = eAPDetectAbnormal
+                        channel = "global"
+                        data {
+                            audioPassengerContextVariableDescription
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 // ===== temperature SM =====
@@ -328,7 +620,6 @@ local TemperatureSM: CSM.StateMachineDescription = new {
         sAssessFireRisk
     }
 }
-
 local sReadTemperature: CSM.StateDescription = new {
     name = "readTemp"
     initial = true
@@ -361,7 +652,6 @@ local sReadTemperature: CSM.StateDescription = new {
         }
     }
 }
-
 local sAssessFireRisk: CSM.StateDescription = new {
     name = "fireRisk"
     entry {
@@ -391,7 +681,6 @@ local sAssessFireRisk: CSM.StateDescription = new {
 //         }
 //     }
 }
-
 // ===== 座位传感器状态机 =====
 local SeatSM: CSM.StateMachineDescription = new {
     name = "seatMonitor"
@@ -412,7 +701,6 @@ local SeatSM: CSM.StateMachineDescription = new {
         sUpdateOccupancy  // 乘客统计
     }
 }
-
 local sScanSeats: CSM.StateDescription = new {
     name = "scan"
     initial = true
@@ -445,7 +733,6 @@ local sScanSeats: CSM.StateDescription = new {
         }
     }
 }
-
 local sUpdateOccupancy: CSM.StateDescription = new {
     name = "updateOccupancy"
     entry {
@@ -466,7 +753,6 @@ local sUpdateOccupancy: CSM.StateDescription = new {
         }
     }
 }
-
 // ===== 安全气囊状态机 =====
 local AirbagSM: CSM.StateMachineDescription = new {
     name = "airbagController"
@@ -487,7 +773,6 @@ local AirbagSM: CSM.StateMachineDescription = new {
         sPostCrashAction
     }
 }
-
 local sMonitorDeployment: CSM.StateDescription = new {
     name = "monitor"
     initial = true
@@ -519,7 +804,6 @@ local sMonitorDeployment: CSM.StateDescription = new {
         }
     }
 }
-
 local sPostCrashAction: CSM.StateDescription = new {
     name = "postCrash"
     entry {
@@ -542,7 +826,6 @@ local sPostCrashAction: CSM.StateDescription = new {
         }
     }
 }
-
 // ===== 车门传感器状态机 =====
 local DoorSM: CSM.StateMachineDescription = new {
     name = "doorIntegrity"
@@ -563,7 +846,6 @@ local DoorSM: CSM.StateMachineDescription = new {
         sAssessDamage    // 损伤评估
     }
 }
-
 local sCheckDoors: CSM.StateDescription = new {
     name = "check"
     initial = true
@@ -596,7 +878,6 @@ local sCheckDoors: CSM.StateDescription = new {
         }
     }
 }
-
 local sAssessDamage: CSM.StateDescription = new {
     name = "assessDamage"
     entry {
@@ -621,408 +902,237 @@ local sAssessDamage: CSM.StateDescription = new {
     }
 }
 
-// ===== 增强版传感器融合状态机 =====
-local SensorFusionSM: CSM.StateMachineDescription = new {
-    name = "fusion"
+// ===== 传感器融合状态机 =====
+local SensorFusionSM: StateMachineDescription = new {
+    name = "SensorFusionCore"
     localContext {
         variables {
-            new {
-                name = vMotionScore
-            }
+            // 最新传感器数据缓存
+            new { name = "lastVideoAngle" value = "false" }
+            new { name = "lastVideoSmoke" value = "false" }
+            new { name = "lastVideoCollision" value = "false" }
+            new { name = "lastVideoPassenger" value = "0" }
+            new { name = "lastAudioCollision" value = "false" }
+            new { name = "lastAudioPassenger" value = "0" }
         }
     }
     states {
-        sCollectAlerts
+        sMonitorEvents
         sClassifyAccident
-        sExecuteRescue
-        sHandleSensorError
     }
 }
-local sCollectAlerts: CSM.StateDescription = new {
-    name = "collect"
+
+// ===== 状态1：持续监听事件 =====
+local sMonitorEvents: StateDescription = new {
+    name = "monitorEvents"
     initial = true
     on {
-        // 碰撞事故：视频+音频+气囊+车门损坏
-        new {
-            event = eVideoMotion
-            guards {
-                new CSM.GuardDescription {
-                    expression = "exists(eAudioCollision) && exists(eAirbagDeployed) && $DoorSM.doorDamaged == true"
-                }
-            }
+        // 监听所有视频相关异常事件
+        new OnTransitionDescription {
+            event = eVADetectAbnormal  // 视频角度异常
             actions {
-                new CSM.RaiseActionDescription {
-                    event {
-                        name = "eCrashConfirmed"
-                        channel = "internal"
+                new AssignActionDescription {
+                    variable = new ContextVariableDescription {
+                        name = "lastVideoAngle"
+                        value = "true"
                     }
                 }
             }
             target = sClassifyAccident.name
         }
-        // 侧翻事故：加速度异常+视频姿态检测
-        new {
-            event = eRolloverDetected
-            guards {
-                new CSM.GuardDescription {
-                    expression = "$VideoSM.motionScore > 0.7 && $vRolloverAngle > 60"
-                }
-            }
+        new OnTransitionDescription {
+            event = eVSDetectAbnormal  // 视频烟雾检测
             actions {
-                new CSM.RaiseActionDescription {
-                    event {
-                        name = "eRolloverConfirmed"
-                        channel = "internal"
+                new AssignActionDescription {
+                    variable = new ContextVariableDescription {
+                        name = "lastVideoSmoke"
+                        value = "true"
                     }
                 }
             }
             target = sClassifyAccident.name
         }
-        // 火灾事故：高温+烟雾检测（需视频分析）
-        new {
-            event = eThermalCritical
-            guards {
-                new CSM.GuardDescription {
-                    expression = "$VideoSM.smokeDetected == true"
-                }
-            }
+        new OnTransitionDescription {
+            event = eVCDetectAbnormal  // 视频碰撞检测
             actions {
-                new CSM.RaiseActionDescription {
-                    event {
-                        name = "eFireConfirmed"
-                        channel = "internal"
+                new AssignActionDescription {
+                    variable = new ContextVariableDescription {
+                        name = "lastVideoCollision"
+                        value = "true"
                     }
                 }
             }
             target = sClassifyAccident.name
         }
-        // 传感器降级处理
-        new {
-            event = eSensorDegraded
-            target = sHandleSensorError.name
-        }
-    }
-}
-
-local sClassifyAccident: CSM.StateDescription = new {
-        name = "classify"
-        entry {
-            new CSM.MatchActionDescription {
-                value = ""
-                cases {
-                    // 碰撞场景：解锁车门+请求医疗救援
-                    new {
-                        `case` = "$lastEvent == 'eCrashConfirmed'"
-                        action = new CSM.RaiseActionDescription{
-                            event {
-                                name = eDoorsUnlocked
-                                channel = "global"
-                            }
-
-                        }
-
-                            new CSM.InvokeActionDescription {
-                                serviceType = "stUnlockAllDoors"
-                            }
-                            new CSM.InvokeActionDescription {
-                                serviceType = "stRequestAmbulance"
-                                input {
-                                    new { name = "occupants" value = "$vOccupantCount" }
-                                }
-                            }
-
-                        // 侧翻场景：解锁应急出口+调整气囊策略
-                        new {
-                            condition = "$lastEvent == 'eRolloverConfirmed'"
-                            actions {
-                                new CSM.InvokeActionDescription {
-                                    serviceType = stUnlockEmergencyExit
-                                    done { event = eEmergencyExitUnlocked }
-                                }
-                                new CSM.InvokeActionDescription {
-                                    serviceType = "stAdjustAirbagPressure"
-                                }
-                            }
-                        }
-                        // 火灾场景：切断空调+启动灭火
-                        new {
-                            condition = "$lastEvent == 'eFireConfirmed'"
-                            actions {
-                                new CSM.InvokeActionDescription {
-                                    serviceType = stActivateAirCutoff
-                                }
-                                new CSM.InvokeActionDescription {
-                                    serviceType = "stReleaseFireSuppressant"
-                                }
-                            }
-                        }
+        new OnTransitionDescription {
+            event = eVPDetectAbnormal  // 视频受困人数
+            actions {
+                new AssignActionDescription {
+                    variable = new ContextVariableDescription {
+                        name = "lastVideoPassenger"
+                        value = "$vVideoPassenger"
                     }
-            }
-        }
-}
-        on {
-            new {
-                event = "eRescueReady"
-                target = sExecuteRescue.name
-            }
-        }
-
-
-local sExecuteRescue: CSM.StateDescription = new {
-        name = "executeRescue"
-        entry {
-            new CSM.ParallelActionDescription {
-                actions = [
-                    // 发送救援信号
-                    new CSM.InvokeActionDescription {
-                        serviceType = "stSendDistressSignal"
-                        input {
-                            new { name = "type", value = "$lastEvent" }
-                            new { name = "GPS", value = "$vVehicleLocation" }
-                        }
-                    },
-                    // 车内语音指导
-                    new CSM.InvokeActionDescription {
-                        serviceType = "stPlayEmergencyGuidance"
-                        input {
-                            new { name = "accidentType", value = "$lastEvent" }
-                        }
-                    }
-                ]
-            }
-        }
-    }
-
-    local sHandleSensorError: CSM.StateDescription = new {
-        name = "handleError"
-        entry {
-            new CSM.SwitchActionDescription {
-                cases = [
-                    // 摄像头故障：切换红外传感器
-                    new {
-                        condition = "$failedSensor == 'camera'"
-                        actions = [
-                            new CSM.InvokeActionDescription {
-                                serviceType = "stSwitchToIRCamera"
-                            }
-                        ]
-                    },
-                    // 温度传感器故障：启用备用热电偶
-                    new {
-                        condition = "$failedSensor == 'temperature'"
-                        actions = [
-                            new CSM.InvokeActionDescription {
-                                serviceType = "stActivateBackupThermocouple"
-                            }
-                        ]
-                    }
-                ]
-            }
-        }
-        on {
-            new {
-                event = "eSensorRecovered"
-                target = sCollectAlerts.name
-            }
-        }
-    }
-}
-
-
-// ===== 救援协调状态机 =====
-local RescueCoordinatorSM: CSM.StateMachineDescription = new {
-    name = "rescueCoordinator"
-    states {
-        sAlertEmergency    // 紧急报警
-        sCoordinateTeams   // 协调救援队
-    }
-
-    local sAlertEmergency: CSM.StateDescription = new {
-        name = "alert"
-        initial = true
-        entry {
-            new CSM.InvokeActionDescription {
-                serviceType = stEmergencyBroadcast
-                input {
-                    new { name = "location", value = "$vVehicleLocation" }
-                    new { name = "occupants", value = "$vOccupantCount" }
                 }
-                done { event = "eEmergencyAck" }
             }
+            target = sClassifyAccident.name
         }
-        on {
-            new {
-                event = "eEmergencyAck"
-                target = sCoordinateTeams.name
-            }
-        }
-    }
-
-    local sCoordinateTeams: CSM.StateDescription = new {
-        name = "coordinate"
-        entry {
-            new CSM.InvokeActionDescription {
-                serviceType = "stDispatchRescue"
-            }
-        }
-    }
-}
-
-// ===== 车辆通信状态机 =====
-local VehicleCommSM: CSM.StateMachineDescription = new {
-    name = "vehicleComms"
-    states {
-        sBroadcastAlert    // 广播警报
-        sReceiveFeedback   // 接收反馈
-    }
-
-    local sBroadcastAlert: CSM.StateDescription = new {
-        name = "broadcast"
-        initial = true
-        entry {
-            new CSM.InvokeActionDescription {
-                serviceType = stVehicle2X
-                input {
-                    new { name = "messageType", value = "accidentAlert" }
-                    new { name = "severity", value = "$vCrashConfidence" }
-                }
-                done { event = eV2XMessageSent }
-            }
-        }
-        on {
-            new {
-                event = eV2XMessageSent
-                target = sReceiveFeedback.name
-            }
-        }
-    }
-
-    local sReceiveFeedback: CSM.StateDescription = new {
-        name = "receive"
-        entry {
-            new CSM.InvokeActionDescription {
-                serviceType = "stProcessV2XResponse"
-            }
-        }
-    }
-}
-
-// ===== 紧急操作状态机 =====
-local EmergencyOpsSM: CSM.StateMachineDescription = new {
-    name = "emergencyOperations"
-    states {
-        sUnlockDoors       // 车门解锁
-        sCutPower          // 切断电源
-        sActivateBeacon    // 激活信标
-    }
-
-    local sUnlockDoors: CSM.StateDescription = new {
-        name = "unlock"
-        initial = true
-        entry {
-            new CSM.InvokeActionDescription {
-                serviceType = stCriticalActions
-                input { new { name = "action", value = "unlockAll" } }
-            }
-        }
-        on {
-            new {
-                event = "eDoorsUnlocked"
-                target = sCutPower.name
-            }
-        }
-    }
-
-    local sCutPower: CSM.StateDescription = new {
-        name = "powerCut"
-        entry {
-            new CSM.SequentialActionDescription {
-                actions = [
-                    new CSM.InvokeActionDescription {
-                        serviceType = "stDisableHighVoltage"
-                    },
-                    new CSM.InvokeActionDescription {
-                        serviceType = "stIsolateBattery"
+        // 监听所有音频相关异常事件
+        new OnTransitionDescription {
+            event = eACDetectAbnormal  // 音频碰撞检测
+            actions {
+                new AssignActionDescription {
+                    variable = new ContextVariableDescription {
+                        name = "lastAudioCollision"
+                        value = "true"
                     }
-                ]
+                }
             }
+            target = sClassifyAccident.name
         }
-        on {
-            new {
-                event = "ePowerOffConfirmed"
-                target = sActivateBeacon.name
+        new OnTransitionDescription {
+            event = eAPDetectAbnormal  // 音频受困人数
+            actions {
+                new AssignActionDescription {
+                    variable = new ContextVariableDescription {
+                        name = "lastAudioPassenger"
+                        value = "$vAudioPassenger"
+                    }
+                }
             }
-        }
-    }
-
-    local sActivateBeacon: CSM.StateDescription = new {
-        name = "beacon"
-        entry {
-            new CSM.InvokeActionDescription {
-                serviceType = "stActivateEmergencyBeacon"
-            }
+            target = sClassifyAccident.name
         }
     }
 }
 
-
-
-
+// ===== 状态2：事故分类 =====
+local sClassifyAccident: StateDescription = new {
+    name = "classifyAccident"
+    entry {
+        new CSM.MatchActionDescription {
+            value = "accidentType"
+            cases {
+                // 优先级1：火灾（烟雾等级>8）
+                new CSM.MatchCaseDescription {
+                    `case` = "$lastVideoSmoke == true"
+                    action = new RaiseActionDescription {
+                        event = new EventDescription {
+                            name = eFireDetected
+                            channel = "global"
+                        }
+                    }
+                }
+                // 优先级2：碰撞确认（视频+音频双重验证）
+                new CSM.MatchCaseDescription {
+                    `case` = "$lastVideoCollision == true || $lastAudioCollision == true"
+                    action = new RaiseActionDescription {
+                        event = new EventDescription {
+                            name = eCollisionConfirmed
+                            channel = "global"
+                        }
+                    }
+                }
+                // 优先级3：侧翻风险（角度>70度）
+                new CSM.MatchCaseDescription {
+                    `case` = "$lastVideoAngle == true"
+                    action = new RaiseActionDescription {
+                        event = new EventDescription {
+                            name = eRolloverRisk
+                            channel = "global"
+                        }
+                    }
+                }
+                // 优先级4：人员计数异常（视频与音频差异>2）
+                new CSM.MatchCaseDescription {
+                    `case` = "abs($lastVideoPassenger - $lastAudioPassenger) > 2"
+                    action = new RaiseActionDescription {
+                        event = new EventDescription {
+                            name = eOccupancyInjured
+                            channel = "global"
+//                             data {
+//                                 new ContextVariableDescription {
+//                                     name = "videoCount"
+//                                     value = "$lastVideoPassenger"
+//                                 }
+//                                 new ContextVariableDescription {
+//                                     name = "audioCount"
+//                                     value = "$lastAudioPassenger"
+//                                 }
+//                             }
+                        }
+                    }
+                }
+                // 默认情况：无紧急事故
+                new CSM.MatchCaseDescription {
+                    `case` = "true"
+                    action = new RaiseActionDescription {
+                        event = new EventDescription {
+                            name = "eNoEmergency"
+                            channel = "internal"
+                        }
+                    }
+                }
+            }
+        }
+    }
+    on {
+        new  {
+            event = "eNoEmergency"
+            target = sMonitorEvents.name  // 返回监听状态
+        }
+    }
+}
 
 
 // ===== 救援协调状态机 =====
 local rescueCoordinatorSM: CSM.StateMachineDescription = new {
     name = "rescueCoordinator"
     states {
-        sAssessSeverity    // 评估严重程度
         sNotifyEmergency   // 通知救援中心
-        sActivateCountermeasures // 启动应对措施
     }
+}
 
-    // --- 严重性评估 ---
-    local sAssessSeverity: CSM.StateDescription = new {
-        name = "assessSeverity"
-        initial = true
-        on {
-            new {
-                event = eCollision
-                actions {
-                    new CSM.InvokeActionDescription {
-                        serviceType = stAssessOccupants
-                        input {
-                            new { name = "seatData"
-                                value = "$vOccupantCount" }
-                            new { name = "cameraData"
-                                value = "feed123" }
-                        }
-                        done {
-                            event = eOccupantsUpdated }
-                    }
+// --- 紧急通知 ---
+local sNotifyEmergency: CSM.StateDescription = new {
+    name = "notifyEmergency"
+    initial = true
+    on{
+        new {
+            event = eFireDetected
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stFireDepartment
                 }
-                target = sNotifyEmergency.name
             }
+             target = sNotifyEmergency.name
         }
-    }
+        new {
+            event = eCollisionConfirmed
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stPolice
+                }
+            }
+             target = sNotifyEmergency.name
+        }
+        new {
+            event = eRolloverRisk
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stPolice
+                }
+            }
+             target = sNotifyEmergency.name
+        }
+         new {
+            event = eOccupancyInjured
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stHospitalDepartment
+                }
+            }
+             target = sNotifyEmergency.name
+        }
 
-    // --- 紧急通知 ---
-    local sNotifyEmergency: CSM.StateDescription = new {
-        name = "notifyEmergency"
-        entry {
-            new CSM.InvokeActionDescription {
-                serviceType = "sendSOS"
-                input {
-                    new { name = "gps", value = "auto" }
-                    new { name = "occupants", value = "$vOccupantCount" }
-                }
-                done { event = "sosAck" }
-            }
-        }
-        on {
-            new {
-                event = "sosAck"
-                target = sActivateCountermeasures.name
-            }
-        }
     }
 }
 
@@ -1030,93 +1140,147 @@ local rescueCoordinatorSM: CSM.StateMachineDescription = new {
 local vehicleCommSM: CSM.StateMachineDescription = new {
     name = "vehicleComm"
     states {
-        sMonitorV2V     // 监听V2V信道
         sBroadcastAlert // 广播警报
-        sCoordinateFleet // 车队协调
     }
+}
 
-    // --- V2V广播 ---
-    local sBroadcastAlert: CSM.StateDescription = new {
-        name = "broadcastAlert"
-        entry {
-            new CSM.InvokeActionDescription {
-                serviceType = stBroadcastV2V
-                input {
-                    new { name = "accidentType"
-                        value = "$eventData.type" }
-                }
-                done { event = eBroadcastSent }
-            }
-        }
-        on {
-            new {
-                event = eBroadcastSent
-                target = sCoordinateFleet.name
-            }
-        }
-    }
-
-    // --- 车队协调 ---
-    local sCoordinateFleet: CSM.StateDescription = new {
-        name = "coordinateFleet"
-        entry {
-            new CSM.InvokeActionDescription {
-                serviceType = "updateRouting"
-                input {
-                    new { name = "avoidanceZone", value = "$gpsData" }
+// --- V2V广播 ---
+local sBroadcastAlert: CSM.StateDescription = new {
+    name = "broadcastAlert"
+    initial = true
+    on {
+        new {
+            event = eFireDetected
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stVToVCommunication
                 }
             }
+             target = sNotifyEmergency.name
+        }
+        new {
+            event = eCollisionConfirmed
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stVToVCommunication
+                }
+            }
+             target = sNotifyEmergency.name
+        }
+        new {
+            event = eRolloverRisk
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stVToVCommunication
+                }
+            }
+             target = sNotifyEmergency.name
+        }
+         new {
+            event = eOccupancyInjured
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stVToVCommunication
+                }
+            }
+             target = sNotifyEmergency.name
         }
     }
 }
+
 
 // ===== 紧急操作状态机 =====
 local emergencyOpsSM: CSM.StateMachineDescription = new {
     name = "emergencyOps"
     states {
-        sUnlockSequence   // 车门解锁序列
-        sFireSuppression  // 火灾抑制
-        sPostCrashSafety  // 碰撞后安全措施
+        sMonitor
+        sUnlockDoor // fire, collision, rollover, injured
+        sDisconnectFuelAndPower // fire
+        sGuidanceForRescue //f
     }
+}
 
-    // --- 车门解锁序列 ---
-    local sUnlockSequence: CSM.StateDescription = new {
-        name = "unlockSequence"
-        entry {
-            new CSM.SequentialActionDescription {
-                actions = [
-                    new CSM.InvokeActionDescription {
-                        serviceType = stUnlockDoors
-                        done { event = eDoorsUnlocked }
-                    },
-                    new CSM.InvokeActionDescription {
-                        serviceType = "activateEmergencyLights"
-                    }
-                ]
+local sMonitor: CSM.StateDescription = new {
+    name = "monitor"
+    initial = true
+    on {
+        new {
+            event = eFireDetected
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stUnlockDoors
+                }
+                new CSM.InvokeActionDescription {
+                    serviceType = stDisconnectPower
+                }
+                new CSM.InvokeActionDescription {
+                    serviceType = stGuidanceRescue
+                }
             }
+            target = sMonitor.name
         }
-        on {
-            new {
-                event = eFire
-                target = sFireSuppression.name
+        new {
+            event = eCollisionConfirmed
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stUnlockDoors
+                }
+                new CSM.InvokeActionDescription {
+                    serviceType = stGuidanceRescue
+                }
             }
+            target = sMonitor.name
+        }
+        new {
+            event = eRolloverRisk
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stUnlockDoors
+                }
+                new CSM.InvokeActionDescription {
+                    serviceType = stGuidanceRescue
+                }
+            }
+            target = sMonitor.name
+        }
+         new {
+            event = eOccupancyInjured
+            actions {
+                new CSM.InvokeActionDescription {
+                    serviceType = stGuidanceRescue
+                }
+            }
+            target = sMonitor.name
         }
     }
+}
 
-    // --- 火灾抑制 ---
-    local sFireSuppression: CSM.StateDescription = new {
-        name = "fireSuppression"
-        entry {
-            new CSM.ParallelActionDescription {
-                actions = [
-                    new CSM.InvokeActionDescription {
-                        serviceType = stCutFuelLine
-                    },
-                    new CSM.InvokeActionDescription {
-                        serviceType = "activateFireExtinguisher"
-                    }
-                ]
-            }
+// --- 车门解锁序列 ---
+local sUnlockDoor: CSM.StateDescription = new {
+    name = "unlockDoor"
+    entry {
+        new CSM.InvokeActionDescription {
+            serviceType = stUnlockDoors
+        }
+    }
+}
+
+// --- 火灾抑制 ---
+local sDisconnectFuelAndPower: CSM.StateDescription = new {
+    name = "disconnectFuelAndPowe"
+    entry {
+         new CSM.InvokeActionDescription {
+            serviceType = stDisconnectPower
+        }
+    }
+}
+
+// --- 火灾抑制 ---
+local sGuidanceForRescue: CSM.StateDescription = new {
+    name = "guidanceForRescue"
+    entry {
+         new CSM.InvokeActionDescription {
+            serviceType = stGuidanceRescue
         }
     }
 }
