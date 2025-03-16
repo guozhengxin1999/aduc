@@ -1156,7 +1156,7 @@ local sBroadcastAlert: CSM.StateDescription = new {
                     serviceType = stVToVCommunication
                 }
             }
-             target = sNotifyEmergency.name
+            // target = sNotifyEmergency.name
         }
         new {
             event = eCollisionConfirmed
@@ -1165,7 +1165,7 @@ local sBroadcastAlert: CSM.StateDescription = new {
                     serviceType = stVToVCommunication
                 }
             }
-             target = sNotifyEmergency.name
+             //target = sNotifyEmergency.name
         }
         new {
             event = eRolloverRisk
@@ -1174,7 +1174,7 @@ local sBroadcastAlert: CSM.StateDescription = new {
                     serviceType = stVToVCommunication
                 }
             }
-             target = sNotifyEmergency.name
+             //target = sNotifyEmergency.name
         }
          new {
             event = eOccupancyInjured
@@ -1183,7 +1183,7 @@ local sBroadcastAlert: CSM.StateDescription = new {
                     serviceType = stVToVCommunication
                 }
             }
-             target = sNotifyEmergency.name
+             //target = sNotifyEmergency.name
         }
     }
 }
