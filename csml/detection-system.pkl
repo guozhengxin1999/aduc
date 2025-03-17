@@ -175,7 +175,7 @@ local VideoSM: CSM.StateMachineDescription = new {
             }
             new {
                 name = "videoPassenger"
-                value = "0"
+                value = "false"
             }
         }
     }
@@ -451,7 +451,7 @@ local sVideoDetectPassenger: CSM.StateDescription = new {
             event = eVideoPassenger
             guards {
                 new CSM.GuardDescription {
-                    expression = vVideoPassenger + " != 0"
+                    expression = "\(vVideoPassenger) == true"
                 }
             }
             actions {
@@ -616,7 +616,7 @@ local sAudioDetectPassenger: CSM.StateDescription = new {
             event = eAudioPassenger
             guards {
                 new CSM.GuardDescription {
-                    expression = vAudioPassenger +" != 0"
+                    expression = "\(vAudioPassenger) == true"
                 }
             }
             actions {
@@ -945,9 +945,9 @@ local SensorFusionSM: StateMachineDescription = new {
             new { name = "lastVideoAngle" value = "false" }
             new { name = "lastVideoSmoke" value = "false" }
             new { name = "lastVideoCollision" value = "false" }
-            new { name = "lastVideoPassenger" value = "0" }
+            new { name = "lastVideoPassenger" value = "false" }
             new { name = "lastAudioCollision" value = "false" }
-            new { name = "lastAudioPassenger" value = "0" }
+            new { name = "lastAudioPassenger" value = "false" }
         }
     }
     states {
@@ -1004,7 +1004,7 @@ local sMonitorEvents: StateDescription = new {
                 new AssignActionDescription {
                     variable = new ContextVariableDescription {
                         name = "lastVideoPassenger"
-                        value = "$vVideoPassenger"
+                        value = "true"
                     }
                 }
             }
@@ -1029,7 +1029,7 @@ local sMonitorEvents: StateDescription = new {
                 new AssignActionDescription {
                     variable = new ContextVariableDescription {
                         name = "lastAudioPassenger"
-                        value = "$vAudioPassenger"
+                        value = "true"
                     }
                 }
             }
@@ -1077,7 +1077,7 @@ local sClassifyAccident: StateDescription = new {
                 }
                 // 优先级4：人员计数异常（视频与音频差异>2）
                 new CSM.MatchCaseDescription {
-                    `case` = "abs($lastVideoPassenger - $lastAudioPassenger) > 2"
+                    `case` = "$lastVideoPassenger || $lastAudioPassenger"
                     action = new RaiseActionDescription {
                         event = new EventDescription {
                             name = eOccupancyInjured
