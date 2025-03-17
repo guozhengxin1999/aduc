@@ -226,9 +226,9 @@ local sReadVideo: CSM.StateDescription = new {
         }
     }
     on {
-
         new {
             event = "eVideoDetect"
+            target = sVideoDetectAngle.name
             actions {
                 new CSM.RaiseActionDescription {
                     event {
@@ -249,8 +249,6 @@ local sReadVideo: CSM.StateDescription = new {
                     }
                 }
             }
-        }
-
             }
 
 
@@ -267,6 +265,7 @@ local sReadVideo: CSM.StateDescription = new {
 //             target = sVideoDetectPassenger.name
 //         }
     }
+}
 
 local sVideoDetectAngle: CSM.StateDescription = new {
     name = "videoDetectAngle"
