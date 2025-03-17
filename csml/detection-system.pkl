@@ -257,7 +257,7 @@ local sVideoDetectAngle: CSM.StateDescription = new {
 
                 // trigger prepocess state ,but not realize now
                 new {
-                    name = "videoPreprocess"
+                    name = "videoDetecteAngleDone"
                     channel = "internal"
                 }
             }
@@ -280,9 +280,8 @@ local sVideoDetectAngle: CSM.StateDescription = new {
                 }
             }
         }
-    }
-    always {
         new {
+            event = "videoDetecteAngleDone"
             target = sVideoDetectSmoke.name
         }
     }
