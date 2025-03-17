@@ -229,15 +229,15 @@ local sReadVideo: CSM.StateDescription = new {
         new {
             event = "eVideoDetect"
             actions {
-                new CSM.RaiseActionDescription {
-                    event {
-                        name = "eVideoDetectAngle"
-                        channel = "global"
-                        data {
-                            videoContextVariableDescription
-                        }
-                    }
-                }
+//                 new CSM.RaiseActionDescription {
+//                     event {
+//                         name = "eVideoDetectAngle"
+//                         channel = "global"
+//                         data {
+//                             videoContextVariableDescription
+//                         }
+//                     }
+//                 }
                 new CSM.RaiseActionDescription {
                     event {
                         name = "eVideoDetectSmoke"
