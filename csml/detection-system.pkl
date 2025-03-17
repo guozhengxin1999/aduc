@@ -280,11 +280,6 @@ local sVideoDetectAngle: CSM.StateDescription = new {
             }
         }
     }
-    always {
-        new {
-            target = sVideoDetectSmoke.name
-        }
-    }
     on {
         new {
             event = eVideoAngle
@@ -304,6 +299,11 @@ local sVideoDetectAngle: CSM.StateDescription = new {
                     }
                 }
             }
+        }
+    }
+    always {
+        new {
+            target = sVideoDetectSmoke.name
         }
     }
 }
@@ -336,11 +336,6 @@ local sVideoDetectSmoke: CSM.StateDescription = new {
             }
         }
     }
-    always {
-        new {
-            target = sVideoDetectPassenger.name
-        }
-    }
     on {
         new {
             event = eVideoSmoke
@@ -360,6 +355,11 @@ local sVideoDetectSmoke: CSM.StateDescription = new {
                     }
                 }
             }
+        }
+    }
+      always {
+        new {
+            target = sVideoDetectPassenger.name
         }
     }
 }
@@ -391,11 +391,6 @@ local sVideoDetectCollison: CSM.StateDescription = new {
             }
         }
     }
-    always {
-        new {
-            target = sVideoDetectAngle.name
-        }
-    }
     on {
         new {
             event = eVideoCollision
@@ -415,6 +410,11 @@ local sVideoDetectCollison: CSM.StateDescription = new {
                     }
                 }
             }
+        }
+    }
+    always {
+        new {
+            target = sVideoDetectAngle.name
         }
     }
 }
@@ -1149,71 +1149,6 @@ local sClassifyAccident: StateDescription = new {
              }
         }
 
-//         new CSM.MatchActionDescription {
-//             value = "accidentType"
-//             cases {
-//                 // 优先级1：火灾（烟雾等级>8）
-//                 new CSM.MatchCaseDescription {
-//                     `case` = "$lastVideoSmoke == true"
-//                     action = new RaiseActionDescription {
-//                         event = new EventDescription {
-//                             name = eFireDetected
-//                             channel = "global"
-//                         }
-//                     }
-//                 }
-//                 // 优先级2：碰撞确认（视频+音频双重验证）
-//                 new CSM.MatchCaseDescription {
-//                     `case` = "$lastVideoCollision == true || $lastAudioCollision == true"
-//                     action = new RaiseActionDescription {
-//                         event = new EventDescription {
-//                             name = eCollisionConfirmed
-//                             channel = "global"
-//                         }
-//                     }
-//                 }
-//                 // 优先级3：侧翻风险（角度>70度）
-//                 new CSM.MatchCaseDescription {
-//                     `case` = "$lastVideoAngle == true"
-//                     action = new RaiseActionDescription {
-//                         event = new EventDescription {
-//                             name = eRolloverRisk
-//                             channel = "global"
-//                         }
-//                     }
-//                 }
-//                 // 优先级4：人员计数异常（视频与音频差异>2）
-//                 new CSM.MatchCaseDescription {
-//                     `case` = "$lastVideoPassenger == true || $lastAudioPassenger == true"
-//                     action = new RaiseActionDescription {
-//                         event = new EventDescription {
-//                             name = eOccupancyInjured
-//                             channel = "global"
-// //                             data {
-// //                                 new ContextVariableDescription {
-// //                                     name = "videoCount"
-// //                                     value = "$lastVideoPassenger"
-// //                                 }
-// //                                 new ContextVariableDescription {
-// //                                     name = "audioCount"
-// //                                     value = "$lastAudioPassenger"
-// //                                 }
-// //                             }
-//                         }
-//                     }
-//                 }
-//                 // 默认情况：无紧急事故
-//                 new CSM.MatchCaseDescription {
-//                     `case` = "true"
-//                     action = new RaiseActionDescription {
-//                         event = new EventDescription {
-//                             name = "eNoEmergency"
-//                             channel = "internal"
-//                         }
-//                     }
-//                 }
-//             }
-//         }
     }
     always {
         new {
