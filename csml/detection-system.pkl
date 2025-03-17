@@ -1077,7 +1077,7 @@ local sClassifyAccident: StateDescription = new {
                 }
                 // 优先级4：人员计数异常（视频与音频差异>2）
                 new CSM.MatchCaseDescription {
-                    `case` = "$lastVideoPassenger || $lastAudioPassenger"
+                    `case` = "$lastVideoPassenger == true || $lastAudioPassenger == true"
                     action = new RaiseActionDescription {
                         event = new EventDescription {
                             name = eOccupancyInjured
