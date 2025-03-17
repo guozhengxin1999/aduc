@@ -226,10 +226,8 @@ local sReadVideo: CSM.StateDescription = new {
         }
     }
     on {
+
         new {
-            event = "eVideoDetect"
-            target = sVideoDetectAngle.name
-        }new {
             event = "eVideoDetect"
             actions {
                 new CSM.RaiseActionDescription {
