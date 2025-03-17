@@ -205,66 +205,58 @@ local sReadVideo: CSM.StateDescription = new {
                     reference = "videoData"
                 }
             }
-            done {
-                new {
-                    name = "eVideoDetectAngle"
-                    channel = "internal"
-                }
-                new {
-                    name = "eVideoDetectSmoke"
-                    channel = "internal"
-                }
-                new {
-                    name = "eVideoDetectCollision"
-                    channel = "internal"
-                }
-                new {
-                    name = "eVideoDetectPassenger"
-                    channel = "internal"
-                }
-            }
-        }
-    }
-    on {
-        new {
-            event = "eVideoDetectAngle"
-            target = sVideoDetectAngle.name
-//             actions {
-//                 new CSM.RaiseActionDescription {
-//                     event {
-//                         name = "eVideoDetectAngle"
-//                         channel = "global"
-//                         data {
-//                             videoContextVariableDescription
-//                         }
-//                     }
+//             done {
+//                 new {
+//                     name = "eVideoDetectAngle"
+//                     channel = "internal"
 //                 }
-//                 new CSM.RaiseActionDescription {
-//                     event {
-//                         name = "eVideoDetectSmoke"
-//                         channel = "global"
-//                          data {
-//                             videoContextVariableDescription
-//                         }
-//                     }
+//                 new {
+//                     name = "eVideoDetectSmoke"
+//                     channel = "internal"
+//                 }
+//                 new {
+//                     name = "eVideoDetectCollision"
+//                     channel = "internal"
+//                 }
+//                 new {
+//                     name = "eVideoDetectPassenger"
+//                     channel = "internal"
 //                 }
 //             }
-            }
-
-
+        }
+    }
+    always {
         new {
-            event = "eVideoDetectSmoke"
-            target = sVideoDetectSmoke.name
+            target = sVideoDetectAngle.name
         }
         new {
-            event = "eVideoDetectCollision"
+             target = sVideoDetectSmoke.name
+        }
+        new {
             target = sVideoDetectCollison.name
         }
         new {
-            event = "eVideoDetectPassenger"
             target = sVideoDetectPassenger.name
         }
     }
+//     on {
+//         new {
+//             event = "eVideoDetectAngle"
+//             target = sVideoDetectAngle.name
+//             }
+//         new {
+//             event = "eVideoDetectSmoke"
+//             target = sVideoDetectSmoke.name
+//         }
+//         new {
+//             event = "eVideoDetectCollision"
+//             target = sVideoDetectCollison.name
+//         }
+//         new {
+//             event = "eVideoDetectPassenger"
+//             target = sVideoDetectPassenger.name
+//         }
+//     }
 }
 
 local sVideoDetectAngle: CSM.StateDescription = new {
@@ -296,31 +288,6 @@ local sVideoDetectAngle: CSM.StateDescription = new {
         }
     }
     on {
-//         new {
-//             event = "eVideoDetectAngle"
-//             actions {
-//                 new CSM.InvokeActionDescription {
-//                    serviceType = stVideoDetectAngle
-//                     input {
-//                         new {
-//                             name = "videoData"
-//                             value = "$videoData"
-//                         }
-//                     }
-//                     output {
-//                         new {
-//                             reference = "videoAngle"
-//                         }
-//                     }
-//                     done {
-//                         new {
-//                             name = eVideoAngle
-//                             channel = "internal"
-//                         }
-//                     }
-//                 }
-//             }
-//         }
         new {
             event = eVideoAngle
             guards {
@@ -372,31 +339,6 @@ local sVideoDetectSmoke: CSM.StateDescription = new {
         }
     }
     on {
-//           new {
-//             event = "eVideoDetectSmoke"
-//             actions {
-//                 new CSM.InvokeActionDescription {
-//                    serviceType = stVideoDetectSmoke
-//                     input {
-//                         new {
-//                             name = "videoData"
-//                             value = "$videoData"
-//                         }
-//                     }
-//                     output {
-//                         new {
-//                             reference = "videoSmoke"
-//                         }
-//                     }
-//                     done {
-//                         new {
-//                             name = eVideoSmoke
-//                             channel = "internal"
-//                         }
-//                     }
-//                 }
-//             }
-//         }
         new {
             event = eVideoSmoke
             guards {
