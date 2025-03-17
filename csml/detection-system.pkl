@@ -942,7 +942,7 @@ local SensorFusionSM: StateMachineDescription = new {
     localContext {
         variables {
             // 最新传感器数据缓存
-            //new { name = "accidentType" value = "true"}
+            new { name = "accidentType" value = "true"}
             new { name = "lastVideoAngle" value = "false" }
             new { name = "lastVideoSmoke" value = "false" }
             new { name = "lastVideoCollision" value = "false" }
@@ -999,18 +999,18 @@ local sMonitorEvents: StateDescription = new {
             }
             target = sClassifyAccident.name
         }
-//         new OnTransitionDescription {
-//             event = eVPDetectAbnormal  // 视频受困人数
-//             actions {
-//                 new AssignActionDescription {
-//                     variable = new ContextVariableDescription {
-//                         name = "lastVideoPassenger"
-//                         value = "true"
-//                     }
-//                 }
-//             }
-//             target = sClassifyAccident.name
-//         }
+        new OnTransitionDescription {
+            event = eVPDetectAbnormal  // 视频受困人数
+            actions {
+                new AssignActionDescription {
+                    variable = new ContextVariableDescription {
+                        name = "lastVideoPassenger"
+                        value = "true"
+                    }
+                }
+            }
+            target = sClassifyAccident.name
+        }
         // 监听所有音频相关异常事件
         new OnTransitionDescription {
             event = eACDetectAbnormal  // 音频碰撞检测
@@ -1279,11 +1279,6 @@ local sNotifyEmergency: CSM.StateDescription = new {
              target = sNotifyEmergency.name
         }
     }
-//     always {
-//         new {
-//             target = sNotifyEmergency.name
-//         }
-//     }
 }
 
 // ===== 车辆通信状态机 =====
