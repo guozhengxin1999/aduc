@@ -19,7 +19,7 @@ def create_protobuf_response(response_data: Dict[str, Any]):
         if isinstance(value, bool):
             context_variable.value.bool = value
         elif isinstance(value, int):
-            context_variable.value.int = value
+            context_variable.value.integer = value
         elif isinstance(value, float):
             context_variable.value.float = value
         elif isinstance(value, str):

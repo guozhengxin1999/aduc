@@ -451,7 +451,7 @@ local sVideoDetectPassenger: CSM.StateDescription = new {
             event = eVideoPassenger
             guards {
                 new CSM.GuardDescription {
-                    expression = "\(vVideoPassenger) != 0"
+                    expression = vVideoPassenger + " != 0"
                 }
             }
             actions {
@@ -512,28 +512,33 @@ local sAudioProcess: CSM.StateDescription = new {
                     reference = "audioData"
                 }
             }
-            done {
-                new {
-                    name = "eAudioDetectCollision"
-                    channel = "internal"
-                }
-                new {
-                    name = "eAudioDetectPassenger"
-                    channel = "internal"
-                }
-            }
+//             done {
+//                 new {
+//                     name = "eAudioDetectCollision"
+//                     channel = "internal"
+//                 }
+//                 new {
+//                     name = "eAudioDetectPassenger"
+//                     channel = "internal"
+//                 }
+//             }
         }
     }
-    on {
+    always {
         new {
-            event = "eAudioDetectCollision"
             target = sAudioDetectCollision.name
         }
-        new {
-            event = "eAudioDetectCollision"
-            target = sAudioDetectPassenger.name
-        }
     }
+//     on {
+//         new {
+//             event = "eAudioDetectCollision"
+//             target = sAudioDetectCollision.name
+//         }
+//         new {
+//             event = "eAudioDetectCollision"
+//             target = sAudioDetectPassenger.name
+//         }
+//     }
 }
 
 local sAudioDetectCollision: CSM.StateDescription = new {
@@ -555,6 +560,11 @@ local sAudioDetectCollision: CSM.StateDescription = new {
                     channel = "internal"
                 }
             }
+        }
+    }
+      always {
+        new {
+            target = sAudioDetectPassenger.name
         }
     }
     on {
@@ -606,7 +616,7 @@ local sAudioDetectPassenger: CSM.StateDescription = new {
             event = eAudioPassenger
             guards {
                 new CSM.GuardDescription {
-                    expression = "\(vAudioPassenger) != 0"
+                    expression = vAudioPassenger +" != 0"
                 }
             }
             actions {
