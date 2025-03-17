@@ -207,7 +207,7 @@ local sReadVideo: CSM.StateDescription = new {
             }
             done {
                 new {
-                    name = "eVideoDetect"
+                    name = "eVideoDetectAngle"
                     channel = "internal"
                 }
 //                 new {
@@ -227,27 +227,28 @@ local sReadVideo: CSM.StateDescription = new {
     }
     on {
         new {
-            event = "eVideoDetect"
-            actions {
-                new CSM.RaiseActionDescription {
-                    event {
-                        name = "eVideoDetectAngle"
-                        channel = "global"
-                        data {
-                            videoContextVariableDescription
-                        }
-                    }
-                }
-                new CSM.RaiseActionDescription {
-                    event {
-                        name = "eVideoDetectSmoke"
-                        channel = "global"
-                         data {
-                            videoContextVariableDescription
-                        }
-                    }
-                }
-            }
+            event = "eVideoDetectAngle"
+            target = sVideoDetectAngle.name
+//             actions {
+//                 new CSM.RaiseActionDescription {
+//                     event {
+//                         name = "eVideoDetectAngle"
+//                         channel = "global"
+//                         data {
+//                             videoContextVariableDescription
+//                         }
+//                     }
+//                 }
+//                 new CSM.RaiseActionDescription {
+//                     event {
+//                         name = "eVideoDetectSmoke"
+//                         channel = "global"
+//                          data {
+//                             videoContextVariableDescription
+//                         }
+//                     }
+//                 }
+//             }
             }
 
 
@@ -268,57 +269,57 @@ local sReadVideo: CSM.StateDescription = new {
 
 local sVideoDetectAngle: CSM.StateDescription = new {
     name = "videoDetectAngle"
-//     entry {
-//         new CSM.InvokeActionDescription {
-//             serviceType = stVideoDetectAngle
-//             input {
-//                 videoContextVariableDescription
-//             }
-//             output {
-//                 new {
-//                     reference = "videoAngle"
-//                 }
-//             }
-//             done {
-//                 new {
-//                     name = eVideoAngle
-//                     channel = "internal"
-//                 }
-//
-//                 // trigger prepocess state ,but not realize now
-//                 new {
-//                     name = "videoPreprocess"
-//                     channel = "internal"
-//                 }
-//             }
-//         }
-//     }
-    on {
-        new {
-            event = "eVideoDetectAngle"
-            actions {
-                new CSM.InvokeActionDescription {
-                   serviceType = stVideoDetectAngle
-                    input {
-                        new {
-                            name = "videoData"
-                            value = "$videoData"
-                        }
-                    }
-                    output {
-                        new {
-                            reference = "videoAngle"
-                        }
-                    }
-                    done {
-                        new {
-                            name = eVideoAngle
-                            channel = "internal"
-                        }
-                    }
+    entry {
+        new CSM.InvokeActionDescription {
+            serviceType = stVideoDetectAngle
+            input {
+                videoContextVariableDescription
+            }
+            output {
+                new {
+                    reference = "videoAngle"
+                }
+            }
+            done {
+                new {
+                    name = eVideoAngle
+                    channel = "internal"
+                }
+
+                // trigger prepocess state ,but not realize now
+                new {
+                    name = "videoPreprocess"
+                    channel = "internal"
                 }
             }
         }
+    }
+    on {
+//         new {
+//             event = "eVideoDetectAngle"
+//             actions {
+//                 new CSM.InvokeActionDescription {
+//                    serviceType = stVideoDetectAngle
+//                     input {
+//                         new {
+//                             name = "videoData"
+//                             value = "$videoData"
+//                         }
+//                     }
+//                     output {
+//                         new {
+//                             reference = "videoAngle"
+//                         }
+//                     }
+//                     done {
+//                         new {
+//                             name = eVideoAngle
+//                             channel = "internal"
+//                         }
+//                     }
+//                 }
+//             }
+//         }
         new {
             event = eVideoAngle
             guards {
