@@ -228,16 +228,19 @@ local sReadVideo: CSM.StateDescription = new {
     on {
         new {
             event = "eVideoDetect"
+            target = sVideoDetectAngle.name
+        }new {
+            event = "eVideoDetect"
             actions {
-//                 new CSM.RaiseActionDescription {
-//                     event {
-//                         name = "eVideoDetectAngle"
-//                         channel = "global"
-//                         data {
-//                             videoContextVariableDescription
-//                         }
-//                     }
-//                 }
+                new CSM.RaiseActionDescription {
+                    event {
+                        name = "eVideoDetectAngle"
+                        channel = "global"
+                        data {
+                            videoContextVariableDescription
+                        }
+                    }
+                }
                 new CSM.RaiseActionDescription {
                     event {
                         name = "eVideoDetectSmoke"
@@ -248,6 +251,8 @@ local sReadVideo: CSM.StateDescription = new {
                     }
                 }
             }
+        }
+
             }
 
 
@@ -264,7 +269,6 @@ local sReadVideo: CSM.StateDescription = new {
 //             target = sVideoDetectPassenger.name
 //         }
     }
-}
 
 local sVideoDetectAngle: CSM.StateDescription = new {
     name = "videoDetectAngle"
