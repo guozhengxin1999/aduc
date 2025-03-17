@@ -96,7 +96,7 @@ async def video_detect_collision(request: Request):
 @app.post("/videoDetectPassenger")
 async def video_detect_passenger(request: Request):
     video_data = await extract_data(request, "videoData", "list")
-    video_passenger = 3  # 假设检测逻辑
+    video_passenger = True  # 假设检测逻辑
     return await create_response({"videoPassenger": video_passenger})
 
 # ----- detect collision using audio -----
@@ -110,7 +110,7 @@ async def audio_detect_collision(request: Request):
 @app.post("/audioDetectPassenger")
 async def audio_detect_passenger(request: Request):
     audio_data = await extract_data(request, "audioData", "list")
-    audio_passenger = 2  # 假设检测逻辑
+    audio_passenger = True  # 假设检测逻辑
     return await create_response({"audioPassenger": audio_passenger})
 
 # ----- process image data -----
