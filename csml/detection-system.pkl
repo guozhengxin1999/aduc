@@ -188,51 +188,20 @@ local sReadVideo: CSM.StateDescription = new {
                     reference = "videoData"
                 }
             }
-//            done {
-//                 new {
-//                     name = "eVideoDetectAngle"
-//                     channel = "internal"
-//                 }
-//                 new {
-//                     name = "eVideoDetectSmoke"
-//                     channel = "internal"
-//                 }
-//                 new {
-//                     name = "eVideoDetectCollision"
-//                     channel = "internal"
-//                 }
-//                 new {
-//                     name = "eVideoDetectPassenger"
-//                     channel = "internal"
-//                 }
-//            }
+            done {
+                new {
+                    name = "readVideoDone"
+                    channel = "internal"
+                }
+            }
         }
     }
-    always {
+    on {
         new {
+            event = "readVideoDone"
             target = sVideoDetectCollison.name
         }
     }
-//     on {
-//         new {
-//             event = "eVideoDetectAngle"
-//             target = sVideoDetectAngle.name
-//             }
-//         new {
-//             event = "eVideoDetectSmoke"
-//             target = sVideoDetectSmoke.name
-//         }
-//         new {
-//             event = "eVideoDetectCollision"
-//             target = sVideoDetectCollison.name
-//         }
-//         new {
-//             event = "eVideoDetectPassenger"
-//             target = sVideoDetectPassenger.name
-//         }
-//     }
-
-
 }
 
 local sVideoDetectAngle: CSM.StateDescription = new {
@@ -309,7 +278,7 @@ local sVideoDetectSmoke: CSM.StateDescription = new {
 
                 // trigger prepocess state ,but not realize now
                 new {
-                    name = "videoPreprocess"
+                    name = "videoDetectSmokeDone"
                     channel = "internal"
                 }
             }
@@ -331,6 +300,10 @@ local sVideoDetectSmoke: CSM.StateDescription = new {
                     }
                 }
             }
+        }
+        new {
+            event = "videoDetectSmokeDone"
+            target = sVideoDetectPassenger.name
         }
     }
 //       always {
@@ -361,7 +334,7 @@ local sVideoDetectCollison: CSM.StateDescription = new {
 
                 // trigger prepocess state ,but not realize now
                 new {
-                    name = "videoPreprocess"
+                    name = "videoDetectCollisonDone"
                     channel = "internal"
                 }
             }
@@ -384,9 +357,9 @@ local sVideoDetectCollison: CSM.StateDescription = new {
                 }
             }
         }
-    }
-    always {
+
         new {
+            event = "videoDetectCollisonDone"
             target = sVideoDetectAngle.name
         }
     }
