@@ -86,7 +86,7 @@ def create_response(response_data: Dict[str, Any]):
     return Response(content=response, media_type=media_type)
 
 # ------------------------ 接口实现 -------------------------------
-@app.post("/preprocessVideos")
+@app.post("/preprocessVideo")
 async def preprocess_video(request: Request):
     file_number = await get_data(request, "fileNumber", "int")
     if file_number not in PRESSURE_FILES:

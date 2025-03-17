@@ -164,8 +164,13 @@ serviceImplementations {
 
 }
 collaborativeStateMachine = accidentDetectCSM
-stateMachineName = "pressure"
-//stateMachineName = "cloud"
+stateMachineName = "SensorFusionCore"
+//stateMachineName = "rescueCoordinator"
+//stateMachineName = "vehicleComm"
+//stateMachineName = "emergencyOps"
+//stateMachineName = "video"
+//stateMachineName = "audio"
+
 localData = new Mapping {}
 bindEventInstanceIds = new Listing {}
 runtimeName = "runtime"
