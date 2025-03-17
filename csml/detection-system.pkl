@@ -1278,7 +1278,11 @@ local sNotifyEmergency: CSM.StateDescription = new {
             }
              target = sNotifyEmergency.name
         }
-
+    }
+    always {
+        new {
+            target = sNotifyEmergency.name
+        }
     }
 }
 
