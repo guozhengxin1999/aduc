@@ -459,9 +459,9 @@ local sVideoDetectPassenger: CSM.StateDescription = new {
                     event {
                         name = eVPDetectAbnormal
                         channel = "global"
-                        data {
-                           videoPassengerContextVariableDescription
-                        }
+//                         data {
+//                            videoPassengerContextVariableDescription
+//                         }
                     }
                 }
             }
@@ -624,9 +624,9 @@ local sAudioDetectPassenger: CSM.StateDescription = new {
                     event {
                         name = eAPDetectAbnormal
                         channel = "global"
-                        data {
-                            audioPassengerContextVariableDescription
-                        }
+//                         data {
+//                             audioPassengerContextVariableDescription
+//                         }
                     }
                 }
             }
