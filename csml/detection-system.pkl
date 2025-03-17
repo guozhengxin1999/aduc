@@ -89,16 +89,6 @@ local eAccidentConfirmed = "accidentConfirmed"
 local eEmergencyTrigger = "emergencyTrigger"
 local eV2XMessageSent = "v2xMessageSent"
 
-
-local eCollision = "collision"
-local eRollover = "rollover"
-local eFire = "fire"
-local eOccupantsUpdated = "occupantsUpdated"
-local eDoorsUnlocked = "doorsUnlocked"
-local eBroadcastSent = "broadcastSent"
-local eSensorTimeout = "sensorTimeout"
-local eFalseAlarm = "falseAlarm"
-
 // ===== varibales =====
 // ----- video -----
 local vVideoAngle = "videoAngle"
@@ -110,13 +100,6 @@ local vAudioCollision = "audioCollision"
 local vAudioPassenger = "audioPassenger"
 // ----- temperature -----
 
-
-local vRolloverAngle = "rolloverAngle"
-local vCrashConfidence = "crashConfidence"
-local vOccupantCount = "occupantCount"
-local vVehicleLocation = "vehicleLocation"
-local vDoorStatus = "doorStatus"
-local vAmbientTemp = "ambientTemp"
 
 // =====ContextVariableDescriptions =====
 local videoContextVariableDescription: CSM.ContextVariableDescription = new {
@@ -293,9 +276,6 @@ local sVideoDetectAngle: CSM.StateDescription = new {
                     event {
                         name = eVADetectAbnormal
                         channel = "global"
-//                         data {
-//                            vVideoAngle
-//                         }
                     }
                 }
             }
@@ -349,19 +329,16 @@ local sVideoDetectSmoke: CSM.StateDescription = new {
                     event {
                         name = eVSDetectAbnormal
                         channel = "global"
-                        //                         data {
-                        //                             don't have data now
-                        //                         }
                     }
                 }
             }
         }
     }
-      always {
-        new {
-            target = sVideoDetectPassenger.name
-        }
-    }
+//       always {
+//         new {
+//             target = sVideoDetectPassenger.name
+//         }
+//     }
 }
 
 local sVideoDetectCollison: CSM.StateDescription = new {
@@ -404,9 +381,6 @@ local sVideoDetectCollison: CSM.StateDescription = new {
                     event {
                         name = eVCDetectAbnormal
                         channel = "global"
-                        //                         data {
-                        //                             don't have data now
-                        //                         }
                     }
                 }
             }
@@ -438,7 +412,6 @@ local sVideoDetectPassenger: CSM.StateDescription = new {
                     channel = "internal"
                 }
 
-                // trigger prepocess state ,but not realize now
                 new {
                     name = "videoPreprocess"
                     channel = "internal"
@@ -459,9 +432,6 @@ local sVideoDetectPassenger: CSM.StateDescription = new {
                     event {
                         name = eVPDetectAbnormal
                         channel = "global"
-//                         data {
-//                            videoPassengerContextVariableDescription
-//                         }
                     }
                 }
             }
@@ -1109,16 +1079,6 @@ local sClassifyAccident: StateDescription = new {
                         event = new EventDescription {
                             name = eOccupancyInjured
                             channel = "global"
-//                             data {
-//                                 new ContextVariableDescription {
-//                                     name = "videoCount"
-//                                     value = "$lastVideoPassenger"
-//                                 }
-//                                 new ContextVariableDescription {
-//                                     name = "audioCount"
-//                                     value = "$lastAudioPassenger"
-//                                 }
-//                             }
                         }
                     }
                 }
@@ -1133,16 +1093,6 @@ local sClassifyAccident: StateDescription = new {
                         event = new EventDescription {
                             name = eOccupancyInjured
                             channel = "global"
-//                             data {
-//                                 new ContextVariableDescription {
-//                                     name = "videoCount"
-//                                     value = "$lastVideoPassenger"
-//                                 }
-//                                 new ContextVariableDescription {
-//                                     name = "audioCount"
-//                                     value = "$lastAudioPassenger"
-//                                 }
-//                             }
                         }
                     }
                 }
