@@ -205,44 +205,51 @@ local sReadVideo: CSM.StateDescription = new {
                     reference = "videoData"
                 }
             }
-            done {
+//            done {
 //                 new {
 //                     name = "eVideoDetectAngle"
 //                     channel = "internal"
 //                 }
-                new {
-                    name = "eVideoDetectSmoke"
-                    channel = "internal"
-                }
-                new {
-                    name = "eVideoDetectCollision"
-                    channel = "internal"
-                }
-                new {
-                    name = "eVideoDetectPassenger"
-                    channel = "internal"
-                }
-            }
+//                 new {
+//                     name = "eVideoDetectSmoke"
+//                     channel = "internal"
+//                 }
+//                 new {
+//                     name = "eVideoDetectCollision"
+//                     channel = "internal"
+//                 }
+//                 new {
+//                     name = "eVideoDetectPassenger"
+//                     channel = "internal"
+//                 }
+//            }
         }
     }
-    on {
+    always {
         new {
-            event = "eVideoDetectAngle"
-            target = sVideoDetectAngle.name
-            }
-        new {
-            event = "eVideoDetectSmoke"
-            target = sVideoDetectSmoke.name
-        }
-        new {
-            event = "eVideoDetectCollision"
             target = sVideoDetectCollison.name
         }
-        new {
-            event = "eVideoDetectPassenger"
-            target = sVideoDetectPassenger.name
-        }
     }
+//     on {
+//         new {
+//             event = "eVideoDetectAngle"
+//             target = sVideoDetectAngle.name
+//             }
+//         new {
+//             event = "eVideoDetectSmoke"
+//             target = sVideoDetectSmoke.name
+//         }
+//         new {
+//             event = "eVideoDetectCollision"
+//             target = sVideoDetectCollison.name
+//         }
+//         new {
+//             event = "eVideoDetectPassenger"
+//             target = sVideoDetectPassenger.name
+//         }
+//     }
+
+
 }
 
 local sVideoDetectAngle: CSM.StateDescription = new {
@@ -271,6 +278,11 @@ local sVideoDetectAngle: CSM.StateDescription = new {
                     channel = "internal"
                 }
             }
+        }
+    }
+    always {
+        new {
+            target = sVideoDetectSmoke.name
         }
     }
     on {
@@ -324,6 +336,11 @@ local sVideoDetectSmoke: CSM.StateDescription = new {
             }
         }
     }
+    always {
+        new {
+            target = sVideoDetectPassenger.name
+        }
+    }
     on {
         new {
             event = eVideoSmoke
@@ -372,6 +389,11 @@ local sVideoDetectCollison: CSM.StateDescription = new {
                     channel = "internal"
                 }
             }
+        }
+    }
+    always {
+        new {
+            target = sVideoDetectAngle.name
         }
     }
     on {
